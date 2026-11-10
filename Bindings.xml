@@ -1,0 +1,25 @@
+<Bindings>
+	<!-- window commands -->
+	<Binding name="CATCHY_TOGGLE" header="CATCHY_BINDINGS" category="ADDONS">
+		if ( keystate == "down" ) then
+			FBEnvironment.Command("");
+		end
+	</Binding>
+	<Binding name="TOGGLECATCHY_LOC" category="CATCHY_BINDINGS">
+		if ( keystate == "down" ) then
+			FBEnvironment.ToggleCatchyFrame("FishingLocationsFrame");
+		end
+	</Binding>
+	<Binding name="TOGGLECATCHY_OPT" category="CATCHY_BINDINGS">
+		if ( keystate == "down" ) then
+			FBEnvironment.ToggleCatchyFrame("FishingOptionsFrame");
+		end
+	</Binding>
+	<!-- commands -->
+	<Binding name="CATCHY_SWITCH" category="CATCHY_BINDINGS">
+		if ( keystate == "down" ) then
+			FBEnvironment.Command(FBConstants.SWITCH);
+		end
+	</Binding>
+	<Binding name="CATCHY_GOFISHING" category="CATCHY_BINDINGS" />
+</Bindings>
