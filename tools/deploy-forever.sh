@@ -9,6 +9,7 @@ install_dir="/home/allie/Games/battlenet/drive_c/Program Files (x86)/World of Wa
 backup_dir="/home/allie/Projects/wow/backups"
 allow_delete=false
 assume_yes=false
+release=false
 rsync_filters=(
     --exclude='.git/'
     --exclude='.vscode/'
@@ -23,6 +24,7 @@ for argument in "$@"; do
     case "$argument" in
         --allow-delete) allow_delete=true ;;
         --yes) assume_yes=true ;;
+        --release) release=true ;;
         *) echo "Unknown argument: $argument" >&2; exit 2 ;;
     esac
 done
@@ -91,3 +93,30 @@ fi
 rm -f "$verify_file"
 echo "Catchy deployed and verified. No installed-only files were lost."
 
+
+if [[ "$release" == true ]]; then
+    # Tagging publishes to CurseForge through GitHub Actions, so it is always
+    # confirmed by hand, even with --yes.
+    cd "$project_root"
+    version="$(sed -n 's/^## Version:[[:space:]]*//p' Catchy.toc | tr -d '\r')"
+    project_id="$(sed -n 's/^## X-Curse-Project-ID:[[:space:]]*//p' Catchy.toc | tr -d '\r')"
+    tag="v$version"
+    branch="$(git rev-parse --abbrev-ref HEAD)"
+    remote="$(git config "branch.$branch.remote" || true)"
+
+    [[ -n "$version" ]] || { echo "No version found in Catchy.toc." >&2; exit 1; }
+    [[ "$project_id" != "15093" ]] || { echo "Catchy.toc still has Fishing Buddy's project ID (15093). Set your own first." >&2; exit 1; }
+    [[ -z "$(git status --porcelain)" ]] || { echo "Refusing to release: commit your changes first." >&2; exit 1; }
+    [[ -n "$remote" ]] || { echo "Branch $branch has no upstream remote." >&2; exit 1; }
+    git rev-parse -q --verify "refs/tags/$tag" >/dev/null && { echo "Tag $tag already exists." >&2; exit 1; }
+    grep -q "^## $version\$" CHANGELOG.md || { echo "CHANGELOG.md has no '## $version' entry." >&2; exit 1; }
+
+    echo
+    echo "Release: tag $tag on $branch, push to $remote, CurseForge project $project_id."
+    read -r -p "Type 'release' to tag and push (this publishes publicly): " answer
+    [[ "$answer" == "release" ]] || { echo "Release cancelled."; exit 0; }
+    git push "$remote" "$branch"
+    git tag -a "$tag" -m "Reel Catchy $version"
+    git push "$remote" "$tag"
+    echo "Tag $tag pushed. GitHub Actions will publish to CurseForge."
+fi

@@ -2,7 +2,7 @@
 ## Title: Reel Catchy
 ## Version: 1.30.0
 ## IconTexture: Interface\AddOns\Catchy\media\Catchy-Minimap
-## X-Curse-Project-ID: 15093
+## X-Curse-Project-ID: 1798963
 ## X-WoWI-ID: 4239
 ## Notes: Help with fishing related tasks -- clothing, fish information, etc.
 ## Notes-deDE: Erleichtert das Angeln - Ausrüstung und Fish-Infos

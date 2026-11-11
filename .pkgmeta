@@ -1,0 +1,15 @@
+package-as: Catchy
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - tools
+  - tests
+  - AGENTS.md
+  - DASHBOARD-AND-POOLS.md
+  - media/Catchy-Minimap-Source.png
+  - media/Catchy-Minimap-Preview.png
+  - media/C Fish Icon on Purple Gradient.png
+  - media/Gemini_Generated_Image_gk6vdngk6vdngk6v.jpg

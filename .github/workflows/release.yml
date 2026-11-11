@@ -1,0 +1,51 @@
+name: Release to CurseForge
+
+# Publishes when a version tag such as v1.30.0 is pushed.
+# Requires the repository secret CF_API_KEY (CurseForge API token).
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check release inputs
+        run: |
+          project_id="$(sed -n 's/^## X-Curse-Project-ID:[[:space:]]*//p' Catchy.toc | tr -d '\r')"
+          if [ -z "$project_id" ]; then
+            echo "Catchy.toc has no X-Curse-Project-ID" >&2; exit 1
+          fi
+          if [ "$project_id" = "15093" ]; then
+            echo "X-Curse-Project-ID is still the original Fishing Buddy project (15093). Set your own project ID." >&2
+            exit 1
+          fi
+          toc_version="$(sed -n 's/^## Version:[[:space:]]*//p' Catchy.toc | tr -d '\r')"
+          if [ "v$toc_version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match Catchy.toc version $toc_version" >&2
+            exit 1
+          fi
+          if [ -z "${{ secrets.CF_API_KEY }}" ]; then
+            echo "Repository secret CF_API_KEY is not set" >&2; exit 1
+          fi
+
+      - name: Check Lua syntax and smoke tests
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq lua5.1 luarocks >/dev/null
+          find . -name '*.lua' -not -path './.git/*' -print0 | while IFS= read -r -d '' f; do
+            sed '1s/^\xEF\xBB\xBF//' "$f" | luac5.1 -p -
+          done
+          for t in tests/*.lua; do lua5.1 "$t"; done
+
+      - name: Package and upload
+        uses: BigWigsMods/packager@v2
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
