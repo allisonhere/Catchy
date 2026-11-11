@@ -1268,7 +1268,8 @@ end
 function Settings:Open(key)
     key = FindPage(key or Settings.current or "general") and (key or Settings.current or "general") or "general"
     local T = _G.Tempus
-    if Settings.hosted and T and T.Options and T.Options.Open and not Settings.standalone then
+    local hostedAllowed = not (T and T.PluginEnabled) or T:PluginEnabled("catchy")
+    if Settings.hosted and hostedAllowed and T and T.Options and T.Options.Open and not Settings.standalone then
         -- Open the requested Catchy page and expand its section in Tempus's sidebar.
         local hostedKey = "catchy_" .. key
         if pcall(T.Options.Open, T.Options, hostedKey) then

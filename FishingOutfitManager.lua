@@ -215,8 +215,10 @@ local function UpdateManagers()
 	else
 		current_manager = FBI:GetSetting("OutfitManager");
 		if ( not current_manager or not OutfitManagers[current_manager] ) then
-			-- if nothing has ever been selected, default to ODF
-			if ( OutfitManagers["OutfitDisplayFrame"] ) then
+			-- if nothing has ever been selected, prefer Catchy's own manager, then ODF
+			if ( OutfitManagers["Catchy Gear"] ) then
+				current_manager = "Catchy Gear";
+			elseif ( OutfitManagers["OutfitDisplayFrame"] ) then
 				current_manager = "OutfitDisplayFrame";
 			else
 				-- no valid ones, use the default one

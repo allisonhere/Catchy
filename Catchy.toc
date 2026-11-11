@@ -34,6 +34,7 @@ CatchyMinimap.lua
 FishingWatcher.xml
 FishingQuests.lua
 FishingGearManager.lua
+CatchyGearManager.lua
 FishingExtravaganza.xml
 FishingRaid.xml
 FishingMacro.lua
@@ -48,6 +49,7 @@ CatchyDashboard.lua
 CatchyJournal.lua
 FishingPoolsMap.lua
 CatchyLocations.lua
+CatchyGear.lua
 CatchyOutfits.lua
 CatchyGauge.lua
 FB_Broker.lua

@@ -24,10 +24,20 @@ for index, section in ipairs(Settings.sections or {}) do
     sectionOrder[section.key] = index
 end
 
+-- Newer Tempus lists Catchy under General > Modules > Plugins; switching it off hides these pages.
+local PLUGIN_KEY = "catchy"
+if Tempus.RegisterPlugin then
+    Tempus:RegisterPlugin(PLUGIN_KEY, {
+        label = "Catchy",
+        desc = "Show Catchy's fishing pages in this window. When off, Catchy opens its own settings window.",
+    })
+end
+
 for index, definition in ipairs(Settings.pages or {}) do
     local source = definition
     Tempus:RegisterPage(SECTION_KEY, {
         key = "catchy_" .. source.key,
+        plugin = PLUGIN_KEY,
         label = source.label,
         order = (sectionOrder[source.section] or 50) * 100 + (source.order or index),
         build = function(page)
