@@ -1,8 +1,8 @@
 local source = assert(io.open("CatchySettings.lua", "rb")):read("*a")
 
-assert(source:find("pcall%(T%.Options%.Open, T%.Options%)"),
-    "Catchy must use Tempus's collapsed normal-open path")
-assert(not source:find('pcall%(T%.Options%.Open, T%.Options, "catchy_" %.%. key%)'),
-    "Catchy still forces its Tempus section open with a page key")
+assert(source:find('pcall(T.Options.Open, T.Options, hostedKey)', 1, true),
+    "Catchy must open the requested page in Tempus")
+assert(source:find('Settings:ScrollHostedPageIntoView(hostedKey)', 1, true),
+    "Catchy must scroll the selected Tempus page into view")
 
-print("tempus collapse smoke: ok")
+print("tempus navigation smoke: ok")

@@ -38,3 +38,41 @@ for index, definition in ipairs(Settings.pages or {}) do
 end
 
 Settings.hosted = true
+
+local function FindNavigation(frame)
+    if not frame then return end
+    if frame.items and frame.child and frame.SetVerticalScroll then return frame end
+    if not frame.GetChildren then return end
+    for _, child in ipairs({ frame:GetChildren() }) do
+        local navigation = FindNavigation(child)
+        if navigation then return navigation end
+    end
+end
+
+function Settings:ScrollHostedPageIntoView(pageKey)
+    local function scroll()
+        if not (Tempus.Options and Tempus.Options.current == pageKey) then return end
+        local navigation = FindNavigation(_G.TempusOptionsFrame)
+        if not navigation then return end
+
+        for _, item in ipairs(navigation.items) do
+            if item.selected and item:IsShown() then
+                local top, bottom = navigation:GetTop(), navigation:GetBottom()
+                local itemTop, itemBottom = item:GetTop(), item:GetBottom()
+                if not (top and bottom and itemTop and itemBottom) then return end
+                local position = navigation:GetVerticalScroll()
+                local margin = 8
+                if itemTop > top - margin then
+                    position = position + top - margin - itemTop
+                elseif itemBottom < bottom + margin then
+                    position = position + bottom + margin - itemBottom
+                end
+                local limit = math.max(0, navigation.child:GetHeight() - navigation:GetHeight())
+                navigation:SetVerticalScroll(math.max(0, math.min(limit, position)))
+                return
+            end
+        end
+    end
+
+    if C_Timer and C_Timer.After then C_Timer.After(0, scroll) else scroll() end
+end

@@ -3,17 +3,10 @@
 
 local _, FBStorage = ...
 local FBI = FBStorage
+local FL = LibStub("LibFishing-1.0")
 
 local Journal = {}
 FBI.Journal = Journal
-
-local GOLD = { 1.00, 0.78, 0.22 }
-local AQUA = { 0.22, 0.84, 0.92 }
-local MUTED = { 0.58, 0.62, 0.68 }
-
-local function SetColor(font, color)
-    font:SetTextColor(color[1], color[2], color[3])
-end
 
 local function FormatTime(seconds)
     seconds = math.floor(seconds or 0)
@@ -21,16 +14,6 @@ local function FormatTime(seconds)
         return string.format("%dh %02dm", math.floor(seconds / 3600), math.floor(seconds % 3600 / 60))
     end
     return string.format("%dm %02ds", math.floor(seconds / 60), seconds % 60)
-end
-
-local function FormatMoney(copper)
-    copper = math.floor(copper or 0)
-    return string.format("%dg %02ds", math.floor(copper / 10000), math.floor(copper % 10000 / 100))
-end
-
-local function Rate(data)
-    if not data or not data.casts or data.casts == 0 then return 0 end
-    return (data.catches or 0) * 100 / data.casts
 end
 
 local function FishName(id)
@@ -50,214 +33,30 @@ local function SortedRows(source, valueField)
     return rows
 end
 
-local frame = CreateFrame("Frame", "CatchyJournalFrame", UIParent, "BackdropTemplate")
-frame:SetSize(720, 520)
-frame:SetPoint("CENTER", UIParent, "CENTER", 0, 25)
-frame:SetFrameStrata("DIALOG")
-frame:SetToplevel(true)
-frame:SetClampedToScreen(true)
-frame:SetMovable(true)
-frame:EnableMouse(true)
-frame:RegisterForDrag("LeftButton")
-frame:Hide()
-frame:SetScript("OnDragStart", frame.StartMoving)
-frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
-if frame.SetBackdrop then
-    frame:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8X8",
-        edgeFile = "Interface\\Buttons\\WHITE8X8",
-        edgeSize = 1,
-    })
-    frame:SetBackdropColor(0.025, 0.035, 0.055, 0.97)
-    frame:SetBackdropBorderColor(0.95, 0.72, 0.18, 0.95)
-end
-
-local wash = frame:CreateTexture(nil, "BACKGROUND")
-wash:SetPoint("TOPLEFT", 1, -1)
-wash:SetPoint("TOPRIGHT", -1, -1)
-wash:SetHeight(92)
-wash:SetColorTexture(0.06, 0.18, 0.22, 0.72)
-
-local icon = frame:CreateTexture(nil, "ARTWORK")
-icon:SetSize(46, 46)
-icon:SetPoint("TOPLEFT", 22, -20)
-icon:SetTexture("Interface\\Icons\\Trade_Fishing")
-
-local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-title:SetPoint("TOPLEFT", icon, "TOPRIGHT", 12, -2)
-title:SetText("FISHING JOURNAL")
-SetColor(title, GOLD)
-
-local subtitle = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 1, -5)
-subtitle:SetText("Your catches, rhythm, and favorite waters")
-SetColor(subtitle, MUTED)
-
-local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-close:SetPoint("TOPRIGHT", -5, -5)
-
-local tabs = {}
-local activePeriod = "session"
-local tabNames = { {"session", "SESSION"}, {"today", "TODAY"}, {"lifetime", "LIFETIME"} }
-for index, info in ipairs(tabNames) do
-    local button = CreateFrame("Button", nil, frame, "BackdropTemplate")
-    button:SetSize(108, 28)
-    button:SetPoint("TOPRIGHT", -48 - ((#tabNames - index) * 114), -52)
-    if button.SetBackdrop then
-        button:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8" })
+-- Locations stores every fish by location, but has no dates. Show that
+-- existing history separately from the Journal's dated session statistics.
+local function RecordedData()
+    local data = { catches = 0, perFish = {}, zones = {} }
+    local holes = Catchy_Info and Catchy_Info["FishingHoles"] or {}
+    for marker, fish in pairs(holes) do
+        local mapId = FBI:ZoneMarkerEx(marker)
+        local zone = data.zones[mapId]
+        if not zone then
+            local name = FL:GetLocZone(mapId)
+            zone = { name = name or ("Map " .. mapId), catches = 0 }
+            data.zones[mapId] = zone
+        end
+        for id, quantity in pairs(fish) do
+            if type(quantity) == "number" and quantity > 0 then
+                data.catches = data.catches + quantity
+                data.perFish[id] = (data.perFish[id] or 0) + quantity
+                zone.catches = zone.catches + quantity
+            end
+        end
     end
-    button.text = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    button.text:SetPoint("CENTER")
-    button.text:SetText(info[2])
-    button.period = info[1]
-    button:SetScript("OnClick", function(self)
-        activePeriod = self.period
-        Journal:Refresh()
-    end)
-    tabs[#tabs + 1] = button
+    return data
 end
-
-local cards = {}
-local cardDefs = {
-    { "casts", "CASTS" }, { "catches", "CATCHES" }, { "rate", "CATCH RATE" },
-    { "speed", "AVG BITE" }, { "cadence", "CADENCE" }, { "gold", "GOLD" },
-}
-for index, info in ipairs(cardDefs) do
-    local card = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    card:SetSize(103, 68)
-    card:SetPoint("TOPLEFT", 22 + ((index - 1) * 113), -109)
-    if card.SetBackdrop then
-        card:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
-        card:SetBackdropColor(0.055, 0.075, 0.105, 0.92)
-        card:SetBackdropBorderColor(0.13, 0.23, 0.29, 1)
-    end
-    card.label = card:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    card.label:SetPoint("TOPLEFT", 10, -10)
-    card.label:SetText(info[2])
-    SetColor(card.label, MUTED)
-    card.value = card:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    card.value:SetPoint("BOTTOMLEFT", 10, 9)
-    SetColor(card.value, index == 4 and AQUA or GOLD)
-    cards[info[1]] = card
-end
-
-local function Header(text, x, y)
-    local label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    label:SetPoint("TOPLEFT", x, y)
-    label:SetText(text)
-    SetColor(label, GOLD)
-    return label
-end
-
-Header("RECENT FORM", 24, -202)
-Header("TOP CATCHES", 24, -282)
-Header("FAVORITE WATERS", 375, -202)
-Header("PERFORMANCE", 375, -344)
-
-local outcomeDots = {}
-for i = 1, 20 do
-    local dot = frame:CreateTexture(nil, "ARTWORK")
-    dot:SetSize(25, 12)
-    dot:SetPoint("TOPLEFT", 24 + ((i - 1) * 16), -230)
-    outcomeDots[i] = dot
-end
-
-local fishRows, zoneRows = {}, {}
-for i = 1, 6 do
-    local fish = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    fish:SetPoint("TOPLEFT", 26, -306 - ((i - 1) * 25))
-    fish:SetWidth(305)
-    fish:SetJustifyH("LEFT")
-    fishRows[i] = fish
-
-    local zone = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    zone:SetPoint("TOPLEFT", 377, -228 - ((i - 1) * 21))
-    zone:SetWidth(305)
-    zone:SetJustifyH("LEFT")
-    zoneRows[i] = zone
-end
-
-local analytics = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-analytics:SetPoint("TOPLEFT", 377, -371)
-analytics:SetWidth(305)
-analytics:SetJustifyH("LEFT")
-analytics:SetSpacing(7)
-
-local footer = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-footer:SetPoint("BOTTOMLEFT", 24, 16)
-footer:SetText("/ca journal  •  Last 20 outcomes are shown newest on the right")
-SetColor(footer, MUTED)
-
-local function PeriodData()
-    local db, session = FBI.Stats:GetDatabase()
-    if activePeriod == "session" then return session, session, db end
-    if activePeriod == "today" then
-        local key = date("%Y-%m-%d")
-        return db.daily[key] or {}, session, db
-    end
-    return db.lifetime or {}, session, db
-end
-
-function Journal:Refresh()
-    if not FBI.Stats then return end
-    local data, session = PeriodData()
-    for _, tab in ipairs(tabs) do
-        local active = tab.period == activePeriod
-        tab:SetBackdropColor(active and 0.11 or 0.04, active and 0.34 or 0.08, active and 0.40 or 0.10, 0.95)
-        tab.text:SetTextColor(active and GOLD[1] or MUTED[1], active and GOLD[2] or MUTED[2], active and GOLD[3] or MUTED[3])
-    end
-
-    cards.casts.value:SetText(tostring(data.casts or 0))
-    cards.catches.value:SetText(tostring(data.catches or 0))
-    cards.rate.value:SetText(string.format("%.1f%%", Rate(data)))
-    local hookCount = data.hookCount or 0
-    cards.speed.value:SetText(hookCount > 0 and string.format("%.1fs", (data.hookTotal or 0) / hookCount) or "--")
-    local intervalCount = data.intervalCount or 0
-    cards.cadence.value:SetText(intervalCount > 0 and string.format("%.1fs", (data.intervalTotal or 0) / intervalCount) or (activePeriod == "session" and string.format("%.1fs", FBI.Stats:AverageCastInterval()) or "--"))
-    cards.gold.value:SetText(FormatMoney(data.gold or 0))
-
-    local outcomes = session.outcomes or {}
-    for i, dot in ipairs(outcomeDots) do
-        local outcome = outcomes[i]
-        if outcome == 1 then dot:SetColorTexture(0.18, 0.85, 0.54, 0.95)
-        elseif outcome == 0 then dot:SetColorTexture(0.88, 0.24, 0.25, 0.90)
-        else dot:SetColorTexture(0.13, 0.17, 0.22, 0.85) end
-    end
-
-    local fish = SortedRows(data.perFish)
-    for i, row in ipairs(fishRows) do
-        if fish[i] then
-            row:SetText(string.format("|cff49dce8%02d|r  %s  |cffffc738× %d|r", i, FishName(fish[i].key), fish[i].value))
-        else row:SetText("|cff4b5563—|r") end
-    end
-
-    local zones = SortedRows(data.zones, "catches")
-    for i, row in ipairs(zoneRows) do
-        if zones[i] then
-            local name = zones[i].data.name or ("Map " .. zones[i].key)
-            row:SetText(string.format("|cff49dce8%02d|r  %s  |cffffc738%d|r", i, name, zones[i].value))
-        else row:SetText("|cff4b5563—|r") end
-    end
-
-    analytics:SetText(string.format(
-        "|cff9aa3adSession length|r  %s\n|cff9aa3adRolling catch rate|r  |cff49dce8%.1f%%|r\n|cff9aa3adUnlooted casts|r  %d\n|cff9aa3adInterrupted casts|r  %d\n|cff9aa3adBest streak|r  |cffffc738%d|r",
-        FormatTime(FBI.Stats:Elapsed()), FBI.Stats:RollingRate(), session.unresolved or 0,
-        session.interrupted or 0, session.best or 0))
-end
-
-function Journal:Open()
-    if FBI.Settings and FBI.Settings.Close then FBI.Settings:Close() end
-    self:Refresh()
-    frame:Show()
-    if frame.Raise then frame:Raise() end
-end
-
-function Journal:Toggle()
-    if frame:IsShown() then frame:Hide() else self:Open() end
-end
-
-frame:SetScript("OnShow", function() Journal:Refresh() end)
-table.insert(UISpecialFrames, "CatchyJournalFrame")
+Journal.RecordedData = RecordedData
 
 local function TopRow(source, valueField)
     local rows = SortedRows(source, valueField)
@@ -295,6 +94,9 @@ local function BuildJournalOverview(page)
     page:Add(Card("Lifetime catches", function()
         local db = Session(); return tostring((db.lifetime and db.lifetime.catches) or 0)
     end), 62)
+    page:Add(Card("Recorded items", function()
+        return tostring(RecordedData().catches)
+    end), 62)
     page:Add(Card("Session catch rate", function()
         return string.format("%.1f%%", FBI.Stats:CatchRate())
     end), 62)
@@ -328,9 +130,10 @@ local function BuildJournalOverview(page)
     function panel:Refresh()
         local db, current = Session()
         local lifetime = db.lifetime or {}
-        local topFish = TopRow(lifetime.perFish)
+        local recorded = RecordedData()
+        local topFish = TopRow(recorded.perFish)
         fish:SetText("|cff8b95a5TOP CATCH|r\n" .. (topFish and (FishName(topFish.key) .. "  |cffffc738× " .. topFish.value .. "|r") or "No catches yet"))
-        local topWater = TopRow(lifetime.zones, "catches")
+        local topWater = TopRow(recorded.zones, "catches")
         water:SetText("|cff8b95a5FAVORITE WATER|r\n" .. (topWater and ((topWater.data.name or ("Map " .. topWater.key)) .. "  |cffffc738" .. topWater.value .. "|r") or "No locations yet"))
         local day = (db.daily or {})[date("%Y-%m-%d")] or {}
         today:SetText(string.format("|cff8b95a5TODAY|r\n%d catches from %d casts", day.catches or 0, day.casts or 0))
@@ -340,6 +143,241 @@ local function BuildJournalOverview(page)
     end
     panel.searchLabel = "Top catch favorite water today recent form"
     page:Add(panel, 112, true)
+
+    page:Section("Last 14 days", "Catches per day over casts. Hover a day for details.")
+    local DAYS, PLOT_W, PLOT_H = 14, K.COL_W * 2 + K.COL_GAP - 62, 104
+    local chart = CreateFrame("Frame", nil, nil)
+    chart:SetSize(K.COL_W * 2 + K.COL_GAP, 188)
+    K.Tex(chart, "BACKGROUND", K.C.card):SetAllPoints()
+    K.Border(chart, { 1, 1, 1, 0.10 })
+    local glow = K.Tex(chart, "BACKGROUND", { 1, 1, 1, 1 }, 1)
+    glow:SetPoint("TOPLEFT", 0, 0)
+    glow:SetPoint("TOPRIGHT", 0, 0)
+    glow:SetHeight(70)
+    local headline = K.Text(chart, 20, K.AC, "OUTLINE")
+    headline:SetPoint("TOPLEFT", 16, -12)
+    local subline = K.Text(chart, 11, K.C.muted)
+    subline:SetPoint("TOPLEFT", 16, -36)
+    local legend = K.Text(chart, 10, K.C.muted)
+    legend:SetPoint("TOPRIGHT", -16, -14)
+    legend:SetJustifyH("RIGHT")
+    legend:SetText("|cff49dce8■|r catches   |cff3a4558■|r casts")
+    local ORIGIN_X, ORIGIN_Y = 40, 30
+    local grid = {}
+    for i = 0, 4 do
+        local line = K.Tex(chart, "BACKGROUND", { 1, 1, 1, i == 0 and 0.16 or 0.055 }, 2)
+        line:SetHeight(1)
+        line:SetPoint("BOTTOMLEFT", ORIGIN_X, ORIGIN_Y + (PLOT_H * i / 4))
+        line:SetPoint("BOTTOMRIGHT", -16, ORIGIN_Y + (PLOT_H * i / 4))
+        local label = K.Text(chart, 9, K.C.muted)
+        label:SetPoint("BOTTOMRIGHT", chart, "BOTTOMLEFT", ORIGIN_X - 8, ORIGIN_Y + (PLOT_H * i / 4) - 5)
+        label:SetJustifyH("RIGHT")
+        grid[i] = label
+    end
+    local pitch = PLOT_W / DAYS
+    local columns = {}
+    for i = 1, DAYS do
+        local col = CreateFrame("Frame", nil, chart)
+        col:SetSize(pitch, PLOT_H + 24)
+        col:SetPoint("BOTTOMLEFT", ORIGIN_X + (i - 1) * pitch, ORIGIN_Y - 22)
+        col:EnableMouse(true)
+        col.hover = K.Tex(col, "BACKGROUND", { 1, 1, 1, 0.045 }, 3)
+        col.hover:SetAllPoints()
+        col.hover:Hide()
+        col.ghost = K.Tex(col, "ARTWORK", { 0.23, 0.27, 0.35, 0.55 }, 1)
+        col.ghost:SetWidth(math.floor(pitch * 0.62))
+        col.ghost:SetPoint("BOTTOM", col, "BOTTOM", 0, 22)
+        col.bar = K.Tex(col, "ARTWORK", { 1, 1, 1, 1 }, 2)
+        col.bar:SetWidth(math.floor(pitch * 0.62) - 8)
+        col.bar:SetPoint("BOTTOM", col, "BOTTOM", 0, 22)
+        col.cap = K.Tex(col, "OVERLAY", { 1, 1, 1, 0.9 }, 3)
+        col.cap:SetHeight(2)
+        col.cap:SetWidth(math.floor(pitch * 0.62) - 8)
+        col.value = K.Text(col, 10, K.C.text, "OUTLINE")
+        col.value:SetJustifyH("CENTER")
+        col.day = K.Text(col, 9, K.C.muted)
+        col.day:SetPoint("BOTTOM", col, "BOTTOM", 0, 8)
+        col.day:SetJustifyH("CENTER")
+        col:SetScript("OnEnter", function(self)
+            self.hover:Show()
+            if not GameTooltip or not self.info then return end
+            GameTooltip:SetOwner(self, "ANCHOR_TOP")
+            GameTooltip:SetText(self.info.title, 1, 1, 1)
+            GameTooltip:AddDoubleLine("Catches", tostring(self.info.catches), 0.6, 0.65, 0.72, 1, 0.78, 0.22)
+            GameTooltip:AddDoubleLine("Casts", tostring(self.info.casts), 0.6, 0.65, 0.72, 1, 1, 1)
+            GameTooltip:AddDoubleLine("Catch rate", self.info.rate, 0.6, 0.65, 0.72, 0.29, 0.86, 0.91)
+            GameTooltip:Show()
+        end)
+        col:SetScript("OnLeave", function(self)
+            self.hover:Hide()
+            if GameTooltip then GameTooltip:Hide() end
+        end)
+        columns[i] = col
+    end
+    function chart:Refresh()
+        local db = Session()
+        local daily = db.daily or {}
+        local now = time()
+        local data, peak, total, totalCasts, best, bestKey = {}, 4, 0, 0, 0, nil
+        for i = 1, DAYS do
+            local stamp = now - (DAYS - i) * 86400
+            local day = daily[date("%Y-%m-%d", stamp)] or {}
+            local casts, catches = day.casts or 0, day.catches or 0
+            data[i] = { stamp = stamp, casts = casts, catches = catches }
+            peak = math.max(peak, casts, catches)
+            total, totalCasts = total + catches, totalCasts + casts
+            if catches > best then best, bestKey = catches, i end
+        end
+        local step = math.ceil(peak / 4)
+        local top = step * 4
+        for i = 0, 4 do grid[i]:SetText(tostring(step * i)) end
+        local r, g, b = K.AC[1], K.AC[2], K.AC[3]
+        for i, col in ipairs(columns) do
+            local d = data[i]
+            local width = math.floor(pitch * 0.62)
+            col.ghost:SetShown(d.casts > 0)
+            col.ghost:SetHeight(math.max(2, PLOT_H * d.casts / top))
+            col.bar:SetShown(d.catches > 0)
+            col.bar:SetHeight(math.max(2, PLOT_H * d.catches / top))
+            local isToday = i == DAYS
+            K.SetGradient(col.bar, "VERTICAL", r * 0.35, g * 0.35, b * 0.35, 0.95, r, g, b, 1)
+            col.cap:ClearAllPoints()
+            col.cap:SetPoint("BOTTOM", col.bar, "TOP", 0, -2)
+            col.cap:SetShown(d.catches > 0)
+            col.cap:SetVertexColor(1, 1, 1, isToday and 1 or 0.7)
+            col.value:ClearAllPoints()
+            col.value:SetPoint("BOTTOM", col.bar, "TOP", 0, 3)
+            col.value:SetText(d.catches > 0 and tostring(d.catches) or "")
+            col.day:SetText(isToday and "|cffffc738" .. date("%d", d.stamp) .. "|r" or date("%d", d.stamp))
+            col.info = {
+                title = date("%A, %b %d", d.stamp), casts = d.casts, catches = d.catches,
+                rate = d.casts > 0 and string.format("%.1f%%", d.catches * 100 / d.casts) or "--",
+            }
+        end
+        headline:SetText(string.format("%d catches", total))
+        subline:SetText(string.format("%.1f per day  •  %s  •  %s",
+            total / DAYS,
+            bestKey and ("best day " .. best .. " on " .. date("%b %d", data[bestKey].stamp)) or "no catches in this window",
+            totalCasts > 0 and string.format("%.1f%% catch rate", total * 100 / totalCasts) or "no casts yet"))
+        K.SetGradient(glow, "VERTICAL", r, g, b, 0, r, g, b, 0.10)
+    end
+    chart.searchLabel = "Last 14 days chart catches casts per day"
+    page:Add(chart, 188, true)
+
+    page:Section("Recent form", "Your last 20 casts this session, newest on the right.")
+    local form = CreateFrame("Frame", nil, nil)
+    form:SetSize(K.COL_W * 2 + K.COL_GAP, 36)
+    K.Tex(form, "BACKGROUND", K.C.card):SetAllPoints()
+    K.Border(form, { 1, 1, 1, 0.10 })
+    local dots = {}
+    for i = 1, 20 do
+        local dot = K.Tex(form, "ARTWORK", { 0.13, 0.17, 0.22, 0.85 })
+        dot:SetSize(25, 12)
+        dot:SetPoint("LEFT", 14 + ((i - 1) * 30), 0)
+        dots[i] = dot
+    end
+    function form:Refresh()
+        local _, current = Session()
+        local outcomes = current.outcomes or {}
+        for i, dot in ipairs(dots) do
+            local outcome = outcomes[i]
+            if outcome == 1 then dot:SetColorTexture(0.18, 0.85, 0.54, 0.95)
+            elseif outcome == 0 then dot:SetColorTexture(0.88, 0.24, 0.25, 0.90)
+            else dot:SetColorTexture(0.13, 0.17, 0.22, 0.85) end
+        end
+    end
+    form.searchLabel = "Recent form outcomes"
+    page:Add(form, 36, true)
+
+    page:Section("Rankings", "Top catches and favorite waters from your recorded history.")
+    local ROWS, BAR_W = 6, K.COL_W - 28
+    local function RankingPanel(title, build)
+        local height = 38 + ROWS * 26
+        local panel = CreateFrame("Frame", nil, nil)
+        panel:SetSize(K.COL_W, height)
+        K.Tex(panel, "BACKGROUND", K.C.card):SetAllPoints()
+        K.Border(panel, { 1, 1, 1, 0.10 })
+        local heading = K.Text(panel, 10, K.C.muted)
+        heading:SetPoint("TOPLEFT", 14, -12)
+        heading:SetText(title)
+        local rows = {}
+        for i = 1, ROWS do
+            local row = {}
+            local y = -32 - (i - 1) * 26
+            row.track = K.Tex(panel, "ARTWORK", { 1, 1, 1, 0.045 }, 1)
+            row.track:SetSize(BAR_W, 20)
+            row.track:SetPoint("TOPLEFT", 14, y)
+            row.fill = K.Tex(panel, "ARTWORK", { 1, 1, 1, 1 }, 2)
+            row.fill:SetHeight(20)
+            row.fill:SetPoint("TOPLEFT", 14, y)
+            row.rank = K.Text(panel, 10, K.C.muted, "OUTLINE")
+            row.rank:SetPoint("TOPLEFT", 20, y - 5)
+            row.name = K.Text(panel, 11, K.C.text, "OUTLINE")
+            row.name:SetPoint("TOPLEFT", 38, y - 4)
+            row.name:SetWidth(BAR_W - 74)
+            row.name:SetJustifyH("LEFT")
+            row.value = K.Text(panel, 11, { 1, 0.78, 0.22 }, "OUTLINE")
+            row.value:SetPoint("TOPRIGHT", panel, "TOPLEFT", 14 + BAR_W - 6, y - 4)
+            row.value:SetJustifyH("RIGHT")
+            rows[i] = row
+        end
+        function panel:Refresh()
+            local list = build()
+            local peak = list[1] and list[1].value or 1
+            local r, g, b = K.AC[1], K.AC[2], K.AC[3]
+            for i, row in ipairs(rows) do
+                local item = list[i]
+                row.fill:SetShown(item ~= nil)
+                if item then
+                    row.fill:SetWidth(math.max(3, BAR_W * item.value / math.max(peak, 1)))
+                    K.SetGradient(row.fill, "HORIZONTAL", r * 0.3, g * 0.3, b * 0.3, 0.9, r * 0.85, g * 0.85, b * 0.85, 0.75)
+                    row.rank:SetText(string.format("%02d", i))
+                    row.name:SetText(item.label)
+                    row.value:SetText(tostring(item.value))
+                else
+                    row.rank:SetText("")
+                    row.name:SetText("|cff4b5563—|r")
+                    row.value:SetText("")
+                end
+            end
+        end
+        panel.searchLabel = title
+        return panel, height
+    end
+    page:Add(RankingPanel("TOP CATCHES", function()
+        local list = SortedRows(RecordedData().perFish)
+        for _, row in ipairs(list) do row.label = FishName(row.key) end
+        return list
+    end))
+    page:Add(RankingPanel("FAVORITE WATERS", function()
+        local list = SortedRows(RecordedData().zones, "catches")
+        for _, row in ipairs(list) do row.label = row.data.name or ("Map " .. row.key) end
+        return list
+    end))
+
+    page:Section("Performance", "Session rhythm and reliability.")
+    local perf
+    local perfPanel = CreateFrame("Frame", nil, nil)
+    perfPanel:SetSize(K.COL_W * 2 + K.COL_GAP, 100)
+    K.Tex(perfPanel, "BACKGROUND", K.C.card):SetAllPoints()
+    K.Border(perfPanel, { 1, 1, 1, 0.10 })
+    perf = K.Text(perfPanel, 12, K.C.text)
+    perf:SetPoint("TOPLEFT", 14, -12)
+    perf:SetWidth(K.COL_W * 2 + K.COL_GAP - 28)
+    perf:SetJustifyH("LEFT")
+    perf:SetSpacing(6)
+    function perfPanel:Refresh()
+        local db, current = Session()
+        local day = (db.daily or {})[date("%Y-%m-%d")] or {}
+        local hookCount = (db.lifetime and db.lifetime.hookCount) or 0
+        perf:SetText(string.format(
+            "|cff9aa3adRolling catch rate|r  |cff49dce8%.1f%%|r\n|cff9aa3adAverage bite|r  %s\n|cff9aa3adUnlooted casts|r  %d\n|cff9aa3adInterrupted casts|r  %d\n|cff9aa3adToday|r  %d catches / %d casts",
+            FBI.Stats:RollingRate(),
+            hookCount > 0 and string.format("%.1fs", (db.lifetime.hookTotal or 0) / hookCount) or "--",
+            current.unresolved or 0, current.interrupted or 0, day.catches or 0, day.casts or 0))
+    end
+    perfPanel.searchLabel = "Performance rolling catch rate unlocked interrupted"
+    page:Add(perfPanel, 100, true)
 end
 
 if FBI.Settings and FBI.Settings.SetPage then
@@ -348,12 +386,7 @@ if FBI.Settings and FBI.Settings.SetPage then
         build = function(page)
             page:Section("Fishing Journal", "Session, daily and lifetime fishing performance.")
             BuildJournalOverview(page)
-            page:Section("Full Journal", "Open the complete Session, Today and Lifetime views with detailed rankings and analytics.")
-            page:Button("Open Fishing Journal", function() Journal:Open() end,
-                "Open the full visual journal with top catches, favorite waters and rhythm analytics.", 210)
         end,
     })
 end
-
-FBI.JournalFrame = frame
 

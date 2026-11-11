@@ -1,4 +1,17 @@
-Version 1.29.0
+# Changelog
+
+## 1.30.0
+
+- Rename the addon's display name to Reel Catchy. The folder, saved variables and `/ca` commands are unchanged, so existing settings and history carry over.
+- Move the Fishing Journal into the Journal page in settings and remove the popup window and the dashboard's "Open Fishing Journal" button. `/ca journal` now opens that settings page.
+- Add a 14-day catch chart with casts behind catches, gridlines and per-day hover details, plus a recent-form strip, ranked top catches and favorite waters bars, and a performance panel.
+- Add a cast timer style option: Watch, Segmented bar, Mono bar or Number, with the previous settings migrated automatically.
+- Redesign the About page with the new logo, version, copyright and credits.
+- Fix double counting when the loot window and chat report the same catch, and catches whose item details were not cached yet.
+- Fix catches being missed when loot was ready before the fishing channel stopped.
+
+## 1.29.0
+
 - Add a polished Fishing Journal (`/ca journal`) with Session, Today and Lifetime views, metric cards, recent-form visualization, top catches, favorite waters and performance details.
 - Add a live minimap pool radar (`/ca radar`) using Catchy's saved fishing schools, freshness colors, distance fading and rotating-minimap support.
 - Add fishing rhythm analytics: rolling last-20 catch rate, average cast-to-catch time, cast cadence, interrupted casts and unlooted casts.
@@ -6,7 +19,8 @@ Version 1.29.0
 - Track fish and zone totals in daily and lifetime statistics.
 - Fix world-map pool pin reuse so repeated refreshes do not exhaust the pin pool.
 
-Version 1.28.0
+## 1.28.0
+
 - Add a session dashboard (Watcher tab -> "Session dashboard", or `/ca stats`) with session time, casts, catches, catch rate, misses, catches per hour, best streak and gold earned. Stats are stored per character and reset daily or after 30 minutes idle.
 - Add world map pool intelligence: known fishing schools are drawn on the world map, colored by freshness (fresh / warm / stale), with fish caught, last-seen age and visit count in the tooltip.
 - Register a "Catchy" category in the modern game Settings panel (Esc -> Options -> AddOns) with all dashboard and pool options.
@@ -14,7 +28,8 @@ Version 1.28.0
 - Add `/ca pools` to toggle world map pins, `/ca pools fresh` to show only pools seen in the last 10 minutes, and `/ca pools clear` to remove stored pools for the displayed map.
 - Store first-seen/last-seen timestamps on fishing schools so pool freshness can be displayed; old school data is migrated on login and pruned after 45 days (max 1000 pools per map).
 
-Version 1.27.4
+## 1.27.4
+
 - Fix Retail nil-call in FishingFluff option initialization (e.g., Bladebone Hook setup) by hardening item-name lookup with callable checks and safe fallback handling when item info APIs are unavailable.
 - Fix Retail error in FishingDatabase AddFishie color resolution when C_Item.GetItemQualityColor returns numeric/tuple values by handling both ColorMixin and legacy tuple return shapes safely.
 - Fix Easy Cast modifier gating regression for `None`: start-cast checks now correctly allow first casts when no modifier key is configured.
@@ -23,7 +38,8 @@ Version 1.27.4
 - Fix Retail pole-lure detection in LibFishing GetPoleBonus by using C_PaperDollInfo.GetTemporaryEnchantmentInfo for fishing tool slot awareness.
 - Bump LibFishing-1.0 MINOR_VERSION so LibStub prefers this updated copy over older bundled versions.
 
-Version 1.27.3
+## 1.27.3
+
 - Fix Retail nil-call risk in FishingGearManager outfit scanning/scoring when legacy EquipmentManager_UnpackLocation is unavailable by adding compatibility-safe unpack fallback handling.
 - Fix remaining direct runtime GetItemCount nil-call risks by using compatibility-safe item-count fallback handling in FishingBuddy AutoOpen, FishingExtravaganza contest tracking, FishingPlans/Baits, FishingQuests, and FishingRaid.
 - Fix bait override eligibility logic in FishingPlans/Baits by correcting subzone variable usage and passing the active map/subzone context into override checks.
@@ -31,13 +47,15 @@ Version 1.27.3
 - Fix option/raid item-info resilience by using compatibility-safe item-info lookup fallbacks and fail-open rarity filtering when item info is unavailable.
 - Fix planner toy API resilience by guarding C_ToyBox usability/info calls in FishingPlans, Bobbers, Rafts, and Items so plan execution safely skips unavailable toy APIs.
 
-Version 1.27.2
+## 1.27.2
+
 - Fix Retail nil-call in FishingDatabase AddFishie color handling by using a safe quality-color fallback chain (GetItemQualityColor -> C_Item.GetItemQualityColor -> ITEM_QUALITY_COLORS).
 - Fix Retail nil-call in LibFishing GetBestFishingItem when EquipmentManager_UnpackLocation is unavailable; prefer direct links returned by GetInventoryItemsForSlot and guard legacy unpack calls.
 - Fix Retail nil-call in FishingPlans/Bobbers by replacing direct GetItemCount and PlayerHasToy calls with compatibility-safe wrappers.
 - Fix Retail nil-call in FishingBuddy GetFishingItem during follow-up Easy Cast checks by resolving item names via a safe GetItemInfo fallback (global or C_Item) with localized-name fallback.
 
-Version 1.27.1
+## 1.27.1
+
 - Fix Retail nil-call in FishingDatabase when resolving quest item class text by falling back from global GetItemClassInfo to C_Item.GetItemClassInfo.
 - Fix Retail nil-call in LibFishing GetItemInfoFields by falling back from global GetItemInfo to C_Item.GetItemInfo.
 - Fix Retail nil-call in FishingPlans/Rafts when checking Bipsi's Bobbing Berg counts by falling back from global GetItemCount to C_Item.GetItemCount.
@@ -45,26 +63,30 @@ Version 1.27.1
 - Fix Easy Cast start gating when no modifier key is configured: the KEYS_NONE path now allows cast start instead of blocking double-click casting.
 - Improve fishing cast detection resilience by falling back to UnitChannelInfo spell/name checks when channel event spell IDs are missing or drift, restoring fish-mode transitions and watcher activation.
 
-Version 1.27
+## 1.27
+
 - Refresh the Fish Watcher visual layout with a dedicated header label that uses the addon name text.
 - Remove the hover-only drag overlay/tab visual so the watcher no longer shows duplicate hover text.
 - Add a thin gold border around the Fish Watcher and standardize border rendering using a BackdropTemplate 1px edge.
 - Rework Fish Watcher spacing to consistent 10px inner padding for cleaner margins around header and content.
 
-Version 1.26.12
+## 1.26.12
+
 - Restore Easy Cast start gating so the configured modifier key (Alt/Shift/Ctrl) is required to begin double-click casting on Retail; KeepOnTruckin still allows follow-up casts while actively fishing.
 - Fix watcher linger after stopping an interrupted fishing cast by ending fishing mode immediately instead of refreshing the idle timer.
 - Harden pool detection against Retail secret-string taint in LibFishing IsFishingPool() by guarding lowercasing during pool-name matching.
 - Set the AddOns/Addon Compartment list icon via TOC metadata (`## IconTexture`) so Fishing Buddy no longer shows the default question-mark icon there.
 
-Version 1.26.11
+## 1.26.11
+
 - Fix Retail tooltip errors when item data has not yet been cached: item IDs now retain a valid `item:<id>` fallback instead of passing nil to C_TooltipInfo.
 - Prevent Fishing Buddy's movement watchdog from reading secret player aura data during combat lockdown.
 - Fix Easy Cast fishing-state detection on Retail: Fishing Buddy now confirms the Fishing for Attention aura (394009) before showing the Fish Watcher, so failed casts on dry land do not activate fishing UI.
 - Preserve the first successful Easy Cast: defer full fishing-mode callbacks until the active Fishing channel ends, avoiding interruption of the initial cast while still showing the Fish Watcher as soon as fishing is confirmed.
 - Count the first catch and start the Fish Watcher elapsed timer from the confirmed initial cast.
 
-Version 1.26.10
+## 1.26.10
+
 - Fix all loot being recorded as fishing catches on Retail. The 1.26.9 tool-slot detection made "pole equipped" always true (the profession tool slot is permanently occupied), and IsFishingLoot() fell back to that equipment check. Loot now only counts as fish when the fishing channel itself ran within the last few seconds (looting the bobber always ends the channel, so real catches land inside that window; mob kills cannot). Same fix applied to LibFishing's caught-so-far counter.
 - Fix the Fish Watcher's "only while fishing" mode: casting Fishing (from the action bar or easy cast) now starts fishing mode, so the watcher appears while actually fishing and hides after the idle timeout; removing the pole from the tool slot (or main hand) now stops fishing mode immediately.
 - Fix fishing mode auto-starting at login when "partial gear" is enabled: the initial gear state is now seeded without triggering fishing mode.
@@ -72,40 +94,49 @@ Version 1.26.10
 - Fix cast tracking comparing channel events against the wrong spell id: the events report the castable Fishing spell (131474), but the handlers checked the profession id (131490), so the cast timestamp never refreshed at channel end and the loot gate rejected real catches. Channel handlers now accept both ids, with a fishing-mode safety net on channel stop.
 - Fix the fishing-pet fluff feature stealing the cast: summoning a battle pet at fishing-mode start ran synchronously inside the easy-cast click, so the first double-click summoned a pet instead of casting. The summon is now deferred to a quiet moment between casts (never while casting or channeling). The pet option also now respects the Fishing Fluff master toggle, as the options UI already implied, and the end-of-fishing pet restore only runs when the addon actually swapped pets (it used to toggle-dismiss the player's own pet).
 
-Version 1.26.9
+## 1.26.9
+
 - Add support for patch 12.0.7 (Revelations). Bump TOC interface to 120007.
 - Fix fish tracking and the Fish Watcher not working on modern Retail. Since patch 10.0.2 fishing poles are profession tools equipped in the dedicated fishing tool slot (INVSLOT_FISHING_TOOL) rather than the main hand, but LibFishing's IsFishingPole() only inspected the main-hand slot, so pole detection failed. Because catch recording and the watcher key off pole detection, neither worked. IsFishingPole() now recognizes a pole in the fishing tool slot on Retail (falling back to the classic main-hand check on Classic).
 - Fix GetPoleBonus() reading the pole's fishing-skill bonus from the empty main-hand slot on Retail (it now reads the fishing tool slot), so the pole's skill bonus is counted again.
 - Fix FishingMacro.lua error when MAX_ACCOUNT_MACROS / MAX_CHARACTER_MACROS are nil on Retail by using safe macro limit resolution and GetNumMacros()-based indexing.
 - Fix FishingWatcher.lua OnUpdate error by replacing direct MouseIsOver(...) calls with a Retail-safe frame mouseover compatibility check.
 
-Version 1.26.8
+## 1.26.8
+
 - Fix additional Retail secret-string taint in FishingQuests.lua GetNPCID() by removing direct GUID string comparisons and moving all GUID parsing into pcall().
 
-Version 1.26.7
+## 1.26.7
+
 - Fix a Retail taint in bobber detection by removing a restricted tooltip alpha comparison.
 
-Version 1.26.6
+## 1.26.6
+
 - Add option to easy-cast even with no gear equipped.
 - Fix easy cast with Reusable Oversized Bobber by using the correct toy item ID.
 - Fix taint by replacing quest-title GetItemCount calls with questID/itemID and IsQuestCompletable checks.
 
-Version 1.26.5
+## 1.26.5
+
 - Fix calendar taint error in FishingExtravaganza.lua by avoiding restricted `sequenceType` comparisons.
 - Improve calendar event parsing resilience when title/type/texture fields are missing.
 - Fix `ADDON_ACTION_BLOCKED` from `RegisterForClicks` by deferring mouse click registration updates until out of combat.
 
-Version 1.26.4
+## 1.26.4
+
 - Add support for patch 12.0.1
 
-Version 1.26.3
+## 1.26.3
+
 - Fix raid error by handling modern gossip quest tables and restricted strings safely in procLunkerQuests().
 
-Version 1.26.2
+## 1.26.2
+
 - Fix FishingBuddy skill display by mapping Khaz Algar continent ID (2274) to The War Within continent detection.
 - Fix dungeon error when tooltip text is restricted by safely handling bobber tooltip string matching.
 
-Version 1.26.1
+## 1.26.1
+
 - Add fishing support for Midnight Pre-Patch
 - Add TWW fishing skill tracking
 - Add zone mappings for TWW zones:
@@ -122,66 +153,83 @@ Version 1.26.1
 - Fix loot tracking not detecting fishing state
 - Fix continent detection returning -1 for TWW zones
 
-Version 1.25
+## 1.25
+
 - Update libraries
 - Get the core functionality working again
 
-Version 1.24.1
+## 1.24.1
+
 - Update libraries
 - Small fixes
 
-Version 1.24
+## 1.24
+
 - Add "Reusable Oversized Bobber"
 - Upload TOC and libraries
 - Update translations
 
-Version 1.23
+## 1.23
+
 - Upload TOC and libraries
 
-Version 1.20.7
+## 1.20.7
+
 - Fix addon version bug that broke translations
 
-Version 1.20.6
+## 1.20.6
+
 - Fishing library fixes
 - Update supporting libraries
 
-Version 1.20.5
+## 1.20.5
+
 - Update TOC
 - 10.1 API changes
 
-Version 1.20.4
+## 1.20.4
+
 - Display progress on fishing gear quests
 - Update TOC
 
-Version 1.20.3
+## 1.20.3
+
 - - Full linting and cleanup pass on all the code which probably fixed some subtle bugs
 
-Version 1.20.2
+## 1.20.2
+
 - Works with the fan-fix version of Outfitter
 
-Version 1.20.1
+## 1.20.1
+
 - Remove outdated equpment event
 
-Version 1.20
+## 1.20
+
 - Complete rewrite for improved code
 - Better tracking of fishing, options to come
 
-Version 1.19.4
+## 1.19.4
+
 - Most of the toys and bobbers work now
 - Should be better behaved after entering combat
 
-Version 1.19.3
+## 1.19.3
+
 - Revert CallbackHandler change
 
-Version 1.19.2
+## 1.19.2
+
 - Skill display and misc fixes from Spiritwlf (thank you!)
 - Update fishing library
 
-Version 1.19.1
+## 1.19.1
+
 - Better secure button handling
 - Fix a missing function error
 
-Version 1.19
+## 1.19
+
 - Update mouse handling to a less intrusive model (thanks Gethe's wow-ui-source
   for helping me find GLOBAL_MOUSE)
 - Rewrite fish locations scrolling code
@@ -189,268 +237,336 @@ Version 1.19
 - Use the latest Equipment Manager references
 - Now requires a "partial outfit" (i.e. wearing a fishing bonus item) or a configured modifier
 
-Version 1.18.1
+## 1.18.1
+
 - Update libraries
 
-Version 1.18
+## 1.18
+
 - Miscellaneous library updates
 
-Version 1.17
+## 1.17
+
 - - Update TOC and libraries
 
-Version 1.16.11
+## 1.16.11
+
 - Update TOC for Shadowlands
 
-Version 1.16.10
+## 1.16.10
+
 - Update libraries
 - Update TOC to 9.1.5
 
-Version 1.16.9
+## 1.16.9
+
 - Update libraries
 
-Version 1.16.8
+## 1.16.8
+
 - A compatibility fix for Fast Loot addons (thanks Zilom!)
 
-Version 1.16.7
+## 1.16.7
+
 - Update TOC version
 
-Version 1.16.6
+## 1.16.6
+
 - Latest version of LibTourist
 
-Version 1.16.5
+## 1.16.5
+
 - Latest version of LibBabble-SubZone
 
-Version 1.16.4
+## 1.16.4
+
 - Again with the max lure issue (thanks again bolerro619!)
 
-Version 1.16.3
+## 1.16.3
+
 - Fix max lure issue (thanks again bolerro619!)
 - See if we can avoid hat buff stomping
 - Add an option for the Fish Finder in the Queen's Conservatory
 
-Version 1.16.2
+## 1.16.2
+
 - Update to latest HereBeDragons
 
-Version 1.16.1
+## 1.16.1
+
 - Fix gossip APIs for auto-turn-in options
 
-Version 1.16
+## 1.16
+
 - Turn on Find Fish when in the Queen's Conservatory
 
-Version 1.15
+## 1.15
+
 - Get bait rotation to actually work with Eleysian Thade
 
-Version 1.14
+## 1.14
+
 - Per-region baits work in Shadowlands, Lost Sole as a last resort
 - Elusian Thade bait will be maintained if applied manually
 
-Version 1.13
+## 1.13
+
 - Fix skill management (watcher works!)
 - Add Bat Visage bobber
 - Add special baits for Shadowlands
 - Fix TOC version
 
-Version 1.12
+## 1.12
+
 - Fix for WorldFrame anchoring issues
 - Fix auto interact bug (thanks hanzo79!)
 - Shadowlands Fishing levels are partially fixed
 
-Version 1.11
+## 1.11
+
 - Update TOC
 - Code fixes for Shadowlands
 - Fix downstream break of other mouse watching addons when we're not fishing! 
 - Add peeps to the AboutBox for their incredible help getting things fixed. (MisterFox9, iWolf1976, javier_himura, Dakhran, RatiaSnowFur, CptTibas)
 
-Version 1.10.10
+## 1.10.10
+
 - Fix a bug in fishing mode management
 
-Version 1.10.9
+## 1.10.9
+
 - Update LibTourist
 - Bug fixes
 
-Version 1.10.8.9
+## 1.10.8.9
+
 - Update libraries
 - Improved fishing zone handling
 
-Version 1.10.8.8
+## 1.10.8.8
+
 - Better handling of per-subzone fishing skills (Thanks TheSpanishinq!)
 - Clean up off-click handling and add an option to use the middle button (ditto!)
 
-Version 1.10.8.7
+## 1.10.8.7
+
 - More changes for fishing in Azshara (Thanks TheSpanishinq!)
 - Update HereBeDragons
 
-Version 1.10.8.6
+## 1.10.8.6
+
 - Update TOC for "Visions of N'Zoth"
 
-Version 1.10.8.5
+## 1.10.8.5
+
 - Update LibBabble-SubZone
 
-Version 1.10.8.4
+## 1.10.8.4
+
 - Fix globals leaks and other code foos
 
-Version 1.10.8.3
+## 1.10.8.3
+
 - Fix a typo in the fix
 
-Version 1.10.8.2
+## 1.10.8.2
+
 - Fix a fishing state and casting key bug
 
-Version 1.10.8.1
+## 1.10.8.1
+
 - Fix a typo in the fishing library that escaped after testing
 
-Version 1.10.8
+## 1.10.8
+
 - Update support libraries
 
-Version 1.10.7
+## 1.10.7
+
 - Classic support changes
 - Fix more Lua issues (unsed code and globals, etc.) -- thanks Globe!
 
-Version 1.10.6
+## 1.10.6
+
 - Fix Ancient Pandaren Charm support now that it's a toy
 - Fix a bunch of Lua errors (misspelled variables, bad globals, etc.)
 
-Version 1.10.5
+## 1.10.5
+
 - Fix missing reference for raft support
 
-Version 1.10.4
+## 1.10.4
+
 -- Update localization information using CurseForge
 -- Support the Gnarlwood Waveboard
 -- Rewrite to make item and lure handling cleaner
 
-Version 1.10.3
+## 1.10.3
+
 - Update support libraries (HereBeDragons)
 - Add option to allowing casting while flying (Monks!)
 
-Version 1.10.2
+## 1.10.2
+
 - Fix some bugs in the new item handling code
 
-Version 1.10.1
+## 1.10.1
+
 - Check cooldown when using lures, the Scarelet Lure in particular
 - Don't cast while flying
 - Don't clear "fishing without a pole" if on a raft and moving
 - Use the "Secret Fish Goggles" as the first action in "Fish without a pole"
 
-Version 1.10
+## 1.10
+
 - Update TOC
 
-Version 1.9.30.2
+## 1.9.30.2
+
 - Remove the skill check completely until I can figure out why IWOMM and nowhere else
 
-Version 1.9.30.1
+## 1.9.30.1
+
 - Make sure that the option turns off the "Check your skill" message
 
-Version 1.9.30
+## 1.9.30
+
 - Support for the "Scarlet Herring Lure"
 - Warn the player if they haven't learned the skill for the local area (Curseforge #383)
 
-Version 1.9.29
+## 1.9.29
+
 - Fix for CurseForge #380 (error with fountain coins)
 - Fixes for a bunch of issues caused by map changes in 8.1.5
 
-Version 1.9.28
+## 1.9.28
+
 - Fix CurseForge #379 (zone lookup error)
 - Update libraries
 
-Version 1.9.27
+## 1.9.27
+
 - Improve the detection of whether or not you can use the raft toy.
 
-Version 1.9.26a1
+## 1.9.26a1
+
 - Add "/fb raft" command for help in debugging raft issues
 
-Version 1.9.26
+## 1.9.26
+
 - Fix for error when no pets selected, CurseForge #376 (thanks, robgha01!)
 - Update libraries
 
-Version 1.9.25p1
+## 1.9.25p1
+
 - Fix for the watcher failing to be draggable
 
-Version 1.9.25
+## 1.9.25
+
 - Updated fishing macro support, with key binding.
 - Add "watcher location by group size" feature, Curse #289
 
-Version 1.9.24
+## 1.9.24
+
 - Hot fix for TOC change in the hotfix
 - Improve looting code
 - More internal code cleanup
 
-Version 1.9.23
+## 1.9.23
+
 - Really, really get rafts working even if you can't use the toy you have (Curse #337)
 - Internal code improvements
 
-Version 1.9.22
+## 1.9.22
+
 - Rewrite raft handling to be smarter when you don't have the berg
 - Actually get the watcher to stick when using the start macro (CurseForge #364)
 - Fix location frame error (CurseForge #365)
 
-Version 1.9.21
+## 1.9.21
+
 - Add option to hide trash fish in watcher
 - More code improvements
 - Update HereBeDragons library
 
-Version 1.9.20
+## 1.9.20
+
 - Attempt to fix the "crash while resizing" issue
 - Make the watcher window stay around when using the macro
 
-Version 1.9.19
+## 1.9.19
+
 - Don't let side effects hide the action button if we're in combat (Curse #363)
 - Add an option to only show the Legion bosses in Broken Isles
 - Actually show the Fisherfriend loot correctly when in Broken Isles
 
-Version 1.9.18
+## 1.9.18
+
 - Fix bug when custom pets selected
 - Don't summon pets in combat (Curse #336, #279)
 
-Version 1.9.17
+## 1.9.17
+
 - Fix error on catching quest fish (Curse #361)
 - Fix can't equip fishing outfit (Curse #360)
 - Fix fishing hat no longer working (Curse #350)
 
-Version 1.9.16
+## 1.9.16
+
 - Work on drinking heavily while fishing
 - Don't use a hat if we have a better lure
 - After fishing without a pole, cast without requiring the key (option: Keep Fishing)
 - Keep track of "caught so far" numbers for skill up again
 - General code improvements
 
-Version 1.9.15
+## 1.9.15
+
 - Draenor special baits are working again
 - Handle who does what when better for auto-looting setting interactions
 - Some code cleanup that might fix the "disappearing tradeskill window" bug
 
-Version 1.9.14
+## 1.9.14
+
 - Add knowledge of fishing skills for Zandalar. For the Horde!
 
-Version 1.9.13
+## 1.9.13
+
 - Use Friend instead of Raid when displaying the 'Fisherfriend" line in the watcher
 - Try not to loot anything "non-fishing" except Legion Fish barrels (which aren't fishing loot, sigh)
 
-Version 1.9.12
+## 1.9.12
+
 - Default "Partial Gear" casting to "off" (fixes surprise in Drustvar)
 - Count the fish we catch when we fish without an actual pole
 - Fix raft timer issue (CurseForge #348)
 
-Version 1.9.11
+## 1.9.11
+
 - The watcher window behaves better when fishing without a pole
 - Update to latest LibBabble-SubZone
 - The quest API changed (CurseForge #342)
 - Eliminate call to out of date API (CurseForge #344)
 - Fixed uninitalized variable (CurseForge #345)
 
-Version 1.9.10
+## 1.9.10
+
 - Try harder not to throw away Legion bonus fish if you don't need the bonus
 - "Setup Skills" option so we don't get your skills at startup (TSM users)
 
-Version 1.9.9
+## 1.9.9
+
 - Don't throw special fish if at max skill or full power Artifact pole (#335)
 - Count fish in a barrel (#322)
 - Fix Curse bugs #338, #339, #340
 
-Version 1.9.8
+## 1.9.8
+
 - Fix "Show Zones" checkbox in display (finally!)
 - Make the login banner optional.
 - Attempt to fix CurseForge #336
 
-Version 1.9.7
+## 1.9.7
+
 - Frame handling cleanup (needed for tracking plugin support)
 - Random code improvements
  
@@ -458,69 +574,85 @@ Version 1.9.7
 - Fix broken data collection, reclaim misplaced catches
 - Random code cleanups and some prettification of data display
 
-Version 1.9.5
+## 1.9.5
+
 - Fix bugs in frame handling so that plugins work more reliably
 - Much hackery to get at per-expansion fishing skills
 
-Version 1.9.4
+## 1.9.4
+
 - Simplify skill to be per "expansion" until subzones get sorted
 - Keep track of where Margoss really lives
 - Bug fixes in map handling
 
-Version 1.9.3
+## 1.9.3
+
 - Handle map based quest items
 - Handle continents better
 
-Version 1.9.1-2
+## 1.9.1-2
+
 - Internal map id cleanup
 - More BfA bug fixes
 
-Version 1.9
+## 1.9
+
 - Minimally updated for BfA
 
-Version 1.8.4.9
+## 1.8.4.9
+
 - Update fishing library (so outfit display does transmog)
 
-Version 1.8.4.8
+## 1.8.4.8
+
 - Fix Curse bug #323 (watcher drag issue)
 
-Version 1.8.4.7
+## 1.8.4.7
+
 - Fix edge case when using Tuskaar Spear
 
-Version 1.8.4.6
+## 1.8.4.6
+
 - Start code changes for BfA (general code cleanup)
 - Attempt to fix Curse bug #319 (stack overflow)
 
-Version 1.8.4.5
+## 1.8.4.5
+
 - Fix Curse bug #321 (console spam)
 
-Version 1.8.4.4
+## 1.8.4.4
+
 - Fix Curse bug #275 (protected function)
 - Fix Curse bug #291 (cast button setting)
 - Raid boss names were lost in translation, now they're back.
 
-Version 1.8.4.3
+## 1.8.4.3
+
 - Track the server reset times for Raid Boss changes (thanks Zeglar!)
 - Use the Trawler Totem, if you have it.
 - Resolve CurseForge issues #315 and #316
 
-Version 1.8.4.2
+## 1.8.4.2
+
 - More raid boss display cleanup, translations for boss names.
 - Make rafts more reliable, add option to use even if using Legendary (still has some issues with buff lag)
 - Fix issue with the raid code stealing the extra action bind.
 
-Version 1.8.4.1
+## 1.8.4.1
+
 - Fix raid filtering function (Curse bug #314)
 - Oversized bobbers should work now (Curse bug #311)
 - Remove abandoned LibCrayon (Curse bug #310)
 
-Version 1.8.4
+## 1.8.4
+
 - Make the extra action button prettier
 - Fix the "Fishing Raid" of the day code so that it actually does that
 - Wear the damned hat! (Curse issue #312)
 - Clean up event handling code so that it's internally consistent (part of the "Better Code for Tomorrow (tm)" effort)
 
-Version 1.8.3
+## 1.8.3
+
 - Raid Support: Filter loot when in a raid
 - Raid Support: Display today's FisherFriend boss
 - Raid Support: Extra action button when you get the special item
@@ -528,10 +660,12 @@ Version 1.8.3
 - Bug #311: Oversized bobber applied inappropriately
 - Lots of little code fixes and improvements
 
-Version 1.8.2
+## 1.8.2
+
 - Fix issue with LibStub and initialization that would cause the broker to fail
 
-Version 1.8.1
+## 1.8.1
+
 - If "Open Quest Items" is checked, throw Legion bonus fish with every cast
 - Display "The Wish Remover" status when we're near the fountain.
 - "Oh, and it's also a great excuse to drink. Heavily."
@@ -539,12 +673,14 @@ Version 1.8.1
 - Fix the annoying bug that stopped many people from casting (thanks HarlequinBonse and Grizzly_UK!)
 - Many small bug fixes, work towards better buff handling
 
-Version 1.8a
+## 1.8a
+
 - Fix random issues with the newly update code
 - Show the count of Lunarfall Carp (since we only get 5 at a time)
 - Don't use the Tuskarr Spear if we're mounted (trying to  make it smarter)
 
-Version 1.8
+## 1.8
+
 - Consistent bobber handling (currently it will only check when you start fishing)
 - Substantial rewrite to use libraries for cleaner code
 - Fix leaking variables and potential taint hazards (thanks Resike!)
@@ -552,167 +688,208 @@ Version 1.8
 - Make the Tuskarr spear behave better.
 - CurseForge bugs 300, 301, 302, 303, 304
  
-Version 1.7.13i
+## 1.7.13i
+
 - Keep track of the new fishing friends' items
 - Handle new bobbers (thanks bsmorgan!)
 
-Version 1.7.13h
+## 1.7.13h
+
 - Bump version in an attempt to work around the "Curse of Curse" bug
 
-Version 1.7.13g
+## 1.7.13g
+
 - Fix calls to PlaySound to use new SoundKit index
 
-Version 1.7.13f
+## 1.7.13f
+
 - Update LibBabble-SubZone
 
-Version 1.7.13e
+## 1.7.13e
+
 - Fix LibTourist
 
-Version 1.7.13d
+## 1.7.13d
+
 - Update TOC
 
-Version 1.7.13c
+## 1.7.13c
+
 - Always try and use the Oversize Bobber if the user wants it
 - Updated Traditional Chinese translation (thanks gaspy10!)
 
-Version 1.7.13b
+## 1.7.13b
+
 - Don't globally define my custom CalendarGetDayEvent so as not to break other addons
 - Update LibTourist and LibPetJournal
 
-Version 1.7.13a
+## 1.7.13a
+
 - Fix Equipment Manger support
 - Fix Curse Bug #296 (calendar event change)
 - Fix "Find Fish" issue
 - Update libraries
 
-Version 1.7.13
+## 1.7.13
+
 - Update TOC for 7.2
 
-Version 1.7.12g
+## 1.7.12g
+
 - Handle Truthseeker and Oathbreaker (hopefully)
 - Go back to the "real" LibBabble-SubZone and use a routine suggested by the author to merge in the missing entries.
 - Begin the great rewrite with a lot of code cleanup
 - Prepare to group options with their related tabs
 
-Version 1.7.12f
+## 1.7.12f
+
 - Don't use the Tuskaar spear while we have Surface Tension on (i.e. using the Legendary)
 
-Version 1.7.12e
+## 1.7.12e
+
 - Turn the special bobbers and such back on (typo during code cleanup)
 
-Version 1.7.12d
+## 1.7.12d
+
 - More library updates
 - Force LibBabble-SubZone to a different (larger) version so that our default updates win
 
-Version 1.7.12c
+## 1.7.12c
+
 - Turn on the default values for missing translations in LibBabble-Subzone
 
-Version 1.7.12b
+## 1.7.12b
+
 - Fix a data corruption bug
 - Don't overwrite special bobbers
 - Oversize bobber wins if they're in your inventory
 
-Version 1.7.12a
+## 1.7.12a
+
 -  Default drowned mana quests to false
 
-Version 1.7.12
+## 1.7.12
+
 - Add support for new fishing bobbers
 - Temporarily remove macro support while it gets rewritten
 - Update support libraries
 
-Version 1.7.11
+## 1.7.11
+
 - Update TOC
 
-Version 1.7.10
+## 1.7.10
+
 - Force null 'name' reference to not happen (no idea why yet, other than caching issues)
 - Add Arcane lure to "special" lure handling
 - Display available Legion world fishing quests
 - Support the new raft toy
 
-Version 1.7.9
+## 1.7.9
+
 - Another set if nil handling changes (found a major one)
 
-Version 1.7.8
+## 1.7.8
+
 - Faster looting
 - Hopefully fix null reference bugs that occur for some people
 - Better loot logic when using Artifact fishing pole
 
-Version 1.7.7
+## 1.7.7
+
 - Force all missing subzone translations to be the English text for now
 - Handle rep turn-ins for Magross, only ding on Mark of Aquaos
 - Update French translations (thanks gurki35!)
 
-Version 1.7.6
+## 1.7.6
+
 - Add Conjurer Margoss items to watcher display
 - Some preliminary work to get lures working more reliably
 
-Version 1.7.5
+## 1.7.5
+
 - Update LibBabble-SubZone to release2
 - Fix item pattern reversion
 
-Version 1.7.4
+## 1.7.4
+
 - Option to use "special" coin lures in Dalaran if you have them in your bags
 - Change "Max Draenor" option to "Max Fishing", try to max out fishing in Broken Isles too
 
-Version 1.7.3
+## 1.7.3
+
 - Mess with Equipment Manager some more (not done yet)
 - Create a Macintosh compatible ZIP file regardless of which dev machine builds it
 
-Version 1.7.2
+## 1.7.2
+
 - CurseForge bug #257 - Watch Bobber functionality broken (thanks Bodar!)
 - CurgeForge bug #210 - Disconnect switching outfits on Monk (hopefully because of slowdown)
 
-Version 1.7.1
+## 1.7.1
+
 - Curseforge bug #272 - Stuck on loading screen
 - Curseforge bug #274 - Error when using Equipment Manager
 - Curseforge bug #276 - Draenor Fishing Pole works again.
 - CurgeForge bug #252 - lure/bait stopped being applied consistently
 - Add "Max Draenor" fishing option, if enabled ignore minimum fishing level
 
-Version 1.7
+## 1.7
+
 - Updates for Legion
 - Support for "Oversize Bobber"
 - Pet handling fixes (thanks miss_kallistra!)
 
-Version 1.6c
+## 1.6c
+
  - Deal with moving to a new machine and and git
 
-Version 1.6b
+## 1.6b
+
 - Update Russian translations (thanks PocoMaxa!)
 - Attempt to fix sound issues when logging out while fishing
 
-Version 1.6a
+## 1.6a
+
 - More checking to make sure Nat Pagle is the only quest giver we talk to
 
-Version 1.6
+## 1.6
+
 - Auto turn-in lunker quests
 - Add "Corpse Worm" support for Undead fishing dailies (Curse bug #260)
 - Stop dragging watcher if Escape is pressed (Curse bug #261)
 
-Version 1.5.6
+## 1.5.6
+
 - Remove max lunker alert sound
 - Update to latest LibTourist
 
-Version 1.5.5
+## 1.5.5
+
 - Add Felmouth Frenzy support
 - Update to latest LibBabble-SubZone
 
-Version 1.5.4
+## 1.5.4
+
 - Update TOC for 6.2
 
-Version 1.5.3
+## 1.5.3
+
 - Fix for bug #259 (error during "A True Draenor Angler" quest)
 
-Version 1.5.2
+## 1.5.2
+
 - Better handling of when and where we're doing Nat's quest (thanks Bodar!)
 - Fix for broken UIFrameIsFading making the watch bobber fail (again, Bodar!!)
 - With ding fish on, "Work Complete" sound plays when you get five lunkers
 - Always show the "Bladebone Hook" as an option, even if we don't have any
 
-Version 1.5.1
+## 1.5.1
+
 - Remove the "Fragrant" Pheromone Fish support
 
-Version 1.5
+## 1.5
+
 - Add "maintain only" option for Draenor bait -- keeps applying whatever you last had applied
 - Update Simplified Chinese translation (thanks yuningning520!)
 - Call the right function in LibTourist (Curse bug #254)
@@ -721,117 +898,145 @@ Version 1.5
 - Ding on Sea Scorpion Lunker catches
 - Auto-apply "Fragrant" Pheromone Fish (might make this optional after I use it for a bit)
 
-Version 1.4y
+## 1.4y
+
 - Fix a random spurious character in the Draenor bait table
 
-Version 1.4x
+## 1.4x
+
 - Don't overwrite Draenor fishing quest baits (Curse bug #250)
 - Add support for Bladebone Hook
 
-Version 1.4w
+## 1.4w
+
 - Use Draenor bait option is in broker menu
 - Update TOC for 6.1
 
-Version 1.4v
+## 1.4v
+
 - Fix for watcher fish counting (thanks ProphetV!)
 
-Version 1.4u
+## 1.4u
+
 - Add an option to display just the current fish in the watcher (Curse #237)
 - Do some fixing around Curse bug #246 (it looks like some addons turn off minimap icons)
 - Updated Traditional Chinese (thanks alec65!)
 
-Version 1.4t
+## 1.4t
+
 - Remove UI freeze when using the Blizz bag sorter
 - Add garrison cavedweller fish to "Pagle" fish list (ding on catch, list in watcher)
 
-Version 1.4s
+## 1.4s
+
 - Add missing file that maanged to not get into source control
 
-Version 1.4r
+## 1.4r
+
 - Don't use Draenor special baits while doing the Hookshot or introductory fishing quests
 - Display lunkers with other quest fish in the watcher
 
-Version 1.4q
+## 1.4q
+
 - Now that the library is right, make sure we check it correctly for non-English clients
 
-Version 1.4p
+## 1.4p
+
 - Fix bug in fishing library that was messing up non-English zone lookups
 
-Version 1.4o
+## 1.4o
+
 - Add an option to control the application of "Draenor bait"
 - More work on cleaning up all of the old lure code to handle all of the new situations
 
-Version 1.4n
+## 1.4n
+
 - The zone based lures should be applied appropriately, including sea scorpion
 - Updated French translation (thanks Matisk, Mips, and ckeurk!)
 - Updated to latest LibTourist, now knows about garrisons
 - Fix Curse bug #243 (switch error while in combat)
 
-Version 1.4m
+## 1.4m
+
 - Don't try and remember fish schools if we're not sure where we are (Curse Bug #240)
 
-Version 1.4k
+## 1.4k
+
 - Fix math error in watcher when you are fishing for the first time
 
-Version 1.4j
+## 1.4j
+
 - Make sure Nat's Hookshot is applied whenever we're doing the Lunker quest
 - Use the Worm Supreme, if we need it to get over 950
 - Use the latest LibTourist, and notice if we're in the Draenor zones for skill check
 
-Version 1.4i
+## 1.4i
+
 - One last "boolean instead of 1" error in the locations frame
 - Latest version of LibTourist (hacked for 950 skill everywhere)
 
-Version 1.4h
+## 1.4h
+
 - Actually fix the issue with checkboxes (Curse bug #234)
 
-Version 1.4g
+## 1.4g
+
 - Subtle fix for checkbox handling in options, use booleans everywhere (Curse bug #234)
 - Use the latest version of LibTourist
 - French translation updated (thanks Dabeuliou!)
 
-Version 1.4f
+## 1.4f
+
 - Use the latest version of LibTourist
 - Remove Outfitter failure (I may add the tooltips back in later)
 
-Version 1.4e
+## 1.4e
+
 - Use the latest version of LibBabble-SubZone
 - Italian translation reviewed (thanks _YuSaKu_!)
 - French translation updated (thanks Dabeuliou!)
 
-Version 1.4d
+## 1.4d
+
 - Use the latest version of LibTourist and LibBabble-SubZone for WoD
 
-Version 1.4c
+## 1.4c
+
 - Don't try to summon fishing pets if we're in combat
 - Make sure we autoloot things that we're opening automatically
 - Better handling when both Angler's Raft and Bipsi's Berg are available
 - Fix for Curse bug #231 "Watcher not toggling off automatically"
 
-Version 1.4b
+## 1.4b
+
 - Get my act together with respect to watch window location (thanks Grizzly_UK!)
 
-Version 1.4a
+## 1.4a
+
 - More work on keeping the watcher visible and onscreen (using LibWindow)
 - Handle version changes and per-player settings correctly
 - Fix an issue with LibTourist where it doesn't check for esMX
 
-Version 1.4
+## 1.4
+
 - Updated German translation (thanks DirtyHarryGermany!)
 - Attempted fix for 64-bit crash bug (#227) by using PLAYER_ALIVE
 - Remove invalid frame reference in watcher window (Curse #229)
 - Add "/fb fishdata reset" to clear out all fish location data (#127)
 - More work on the watcher frame to try and make it stay on screen all the time
 
-Version 1.3b
+## 1.3b
+
 - Have "all english" command syntax to reduce confusion
 - Minor internal library changes to reduce event spam during world transitions
 - Fix Curse bug #215 - Stutters when phasing on your farm
 
-Version 1.3a
+## 1.3a
+
 - Fix moved line that escaped testing
 
-Version 1.3
+## 1.3
+
 - Allow for choosing Mouse4 and Mouse5 for casting
 - Add "/fb fishing start" for use in macros to turn on "fishing mode"
 - Add "FishingBuddy" macro (self modifying macro that emulates the double click sequence)
@@ -839,17 +1044,21 @@ Version 1.3
 - Attempt to fix Curse bug #224 (Minimap Icon moves)
 - Rewrote Fish Watcher display code (some of the oldest code in FB!)
 
-Version 1.2p3
+## 1.2p3
+
 - Fix for Curse bug #221 (error on mouse over with Gear manager)
 - Updated fix for Curse bug #218 (ammo slot still has a value in it, but it's zero now)
 
-Version 1.2p2
+## 1.2p2
+
 - Fix for UpdateMicroButtons taint
 
-Version 1.2p1
+## 1.2p1
+
 - Update to latest LibTourist (added Timeless Isle)
 
-Version 1.2p
+## 1.2p
+
 - Updated TOC to 5.4
 - Fixed About box, because credit where credit is due is what you do
 - Better Extravaganza time handling based on code from Salty Badmunkay the Limnologist (@Shadow Council)
@@ -859,60 +1068,72 @@ Version 1.2p
 - Fix "Open Quest Item" handling
 - Updated to latest versions of LibTourist and LibBabble-SubZone
 
-Version 1.2o
+## 1.2o
+
 - Rewrite pet menu handling to use LibPetJournal
 - Fix for CurseForge bug #217 and #218
 
-Version 1.2n
+## 1.2n
+
 - Fix for CurseForge bug #216, error in option screen with Outfitter selected
 - Latest version of LibTourist
 
-Version 1.2m
+## 1.2m
+
 - Update TOC for 5.3
 - Better check for "in combat" and some event management updates
 - Latest version of LibBabble-SubZone
 
-Version 1.2l
+## 1.2l
+
 - Update TOC for 5.2
 - Updated LibBabble-SubZone and LibTourist for 5.2
 
-Version 1.2k
+## 1.2k
+
 - Updated LibBabble-SubZone, prep for 5.2
 - Remove Kalu'ak Fishing Derby timer, now that it's gone for good (sniff!)
 
-Version 1.2j
+## 1.2j
+
 - Updated Spanish translation (thanks Magire!)
 - Updated Brazilian Portuguese translation  (thanks tiagopl!)
 
-Version 1.2i
+## 1.2i
+
 - Fix for Equipment Manager event misunderstanding
 - Updated Russian translation (thanks Turbid121!)
 
-Version 1.2h
+## 1.2h
+
 - Attempt to fix memory leak and framerate losses with partial outfit option
 - Updated German translation (thanks DirtyHarryGermany!)
 - Updated Russian translation (thanks Turbid121 and BloodyFess!)
 - Rewrite window handling to use new Blizz code and graphics
 - Fixes for Curse bugs #139 and #141 from sometime in the past
 
-Version 1.2g
+## 1.2g
+
 - FIx a subtle bug in the Pandaren item code that hopefully will make it work for everyone else
 - Updated Spanish (esES) translation (thanks karrash76!)
 - Updated LibTourist to the latest version
 
-Version 1.2f
+## 1.2f
+
 - Updated Spanish (esES) translation (thanks karrash76!)
 - Updated German translation (thanks DirtyHarryGermany!)
 - Updated LibTourist to the latest version
 - Make options display better with long names (CurseForge #110)
 
-Version 1.2e
+## 1.2e
+
 - Fishing pets work again
 - Add option to display the Nat Pagle quest fish you've caught "today"
 - Updated Russian translation (thanks BloodyFess!)
 - Updated LibTourist library
 
-Version 1.2d
+## 1.2d
+
 - Add option to just "maintain" the raft if it's already on, i.e. manual engagement
 - Support the Sharpened Tuskaar Spear (ugly, but it works for now)
 - Fix the minimap icon setting, again
@@ -921,26 +1142,30 @@ Version 1.2d
 - Fix summon pet errors -- BUT PETS DON"T WORK YET
 - Fix Curse bugs #206, #207, #208
 
-Version 1.2c
+## 1.2c
+
 - Updated German translation (thanks DirtyHarryGermany!)
 - Updated Traditional Chinese translation (thanks titanium0107!)
 - Update the raft buff before it expires, if we can (reworking this for the next version)
 - Handle Nat's Hat correctly
 - Lots of small code improvements
 
-Version 1.2b
+## 1.2b
+
 - Add option to play the quest completed sound when you catch Nat Pagle rep fish (#203)
 - More work on the pet menu to try and address the "script too long" bug some people
   are seeing
 
-Version 1.2a
+## 1.2a
+
 - New French translation (thanks Matisk!)
 - Updated Traditional Chinese translation (thanks titanium0107!)
 - New German translation (thanks DirtyHarryGermany!)
 - Add Nat's Hat (duh)
 - Updated the About box to thank all the translators! (I always do, calling it out :-)
 
-Version 1.2
+## 1.2
+
 - Add "Partial Gear" option for casting. If enabled, wearing any item that has a fishing
   bonus will let you double click cast.
 - Add support for the Angler's Raft (still figuring out what to do about the spear)
@@ -951,11 +1176,13 @@ Version 1.2
 - Fix for pet menu timeout (CurseForge #190, #198)
 - Miscellaneous bug fixes (CurseForge #201, forum)
 
-Version 1.1f
+## 1.1f
+
 - Fix a startup bug for brand-new toons (or never fished from a pool)
 - Updated Russian translation (thanks DVK!)
 
-Version 1.1e
+## 1.1e
+
 - Fix startup bug (CurseForge #195)
 - Add a delay after we cast a lure so that it has time to show up (prevent double lures)
 - Add Tiny Goldfish to the Fishing pet list
@@ -963,123 +1190,148 @@ Version 1.1e
 - Updated traditional Chinese translations (thanks titanium0107!)
 - Update German translation (thanks DirtyHarryGermany!)
 
-Version 1.1d
+## 1.1d
+
 - Add support for Ancient Pandaren Fishing Charm (Woot! Only took two days of camping!)
 - More work on the pets, all should be good now
 
-Version 1.1c
+## 1.1c
+
 - Fishing Watcher works with "auto pole" casting
 - Updated Russian translation (thanks D_Angel!)
 - Fix fish caught bug (CurseForge #192, #193)
 - Fix assorted issues with causing math errors in LibTourist (CurseForge #189)
 - Clean up internal event handling, should help memory usage
 
-Version 1.1b
+## 1.1b
+
 - Fix option stickiness bugs (CurseForge #184, $187, #188)
 - Include LibDataBroker explicitly (CurseForge #186)
 - FIx minimap button display issues (CurseForge #185, #183, #180, #178)
 - Fix meta pet menu issues
 
-Version 1.1a
+## 1.1a
+
 - Yet another '_' global issue (the last one, I think, after going through all the code)
 
-Version 1.1
+## 1.1
+
 - Italian translation, thanks Impaler (and bER92)!
 - Add support for "Fish without a pole" feature. Cast when any fishing gear is worn or
   a modifier key is held down while right-clicking
 - Remove Astrolabe since it causes problems with MoP (and it doesn't work well)
 
-Version 1.0.9f
+## 1.0.9f
+
 - Remove ancient custom minimap button code and use LibDBIcon instead
 - Fix pet menu (again), bug #177
 - Add Nat's Hat
 
-Version 1.0.9e
+## 1.0.9e
+
 - Remove references to LibBabble-Zone now that it is deprecated
 - Quest Items auto-loot again (CurseForge bug #172)
 - Fix pet menu (CurseForge bugs #167, #174, #176)
 - Updated German translation (Thanks DirtyHarryGermany!), closes #171, #173
 
-Version 1.0.9d
+## 1.0.9d
+
 - Don't fail if there isn't a fishing pet list
 
-Version 1.0.9c
+## 1.0.9c
+
 - Fix Fishing Pet menu (I have duplicates of a lot more pets than I thought I did...)
 - Latest version of LibBabble-Zone (soon to be removed)
 
-Version 1.0.9b
+## 1.0.9b
+
 - Blizz apparently uses "_" as a global, so let's make sure we have our own (#168)
 - Latest version of LibTourist
 
-Version 1.0.9a
+## 1.0.9a
+
 - Latest version of LibTourist
 
-Version 1.0.9
+## 1.0.9
+
 - Update TOC for 5.0.4
 - Update to work with WoW 5.0 (fix for Curse #165, #166)
 - Hack to LibTourist so that it doesn't break (temp fix for Curse #164)
 
-Version 1.0.8b
+## 1.0.8b
+
 - Fixed Video Options bug (CurseForge #159, #162, #149)
 - Fixed some small issues with the Equipment Manager
 - Fixed pet summoning and dismissing bug
 - Update LibTourist and LibBabble-Zone to latest versions
 
-Version 1.0.8a
+## 1.0.8a
+
 - Really fix fish watcher updating bug, CurseForge #146 (Thanks WildCard_25!)
 
-Version 1.0.8
+## 1.0.8
+
 - Complete rewrite of cast handling
 - Handle auto loot internally instead of messing with the UI setting
 - Make "Easy Cast" default to "on", since that's the whole point after all
 - Fixes for Curse bugs: 100, 146, 155, 156, 157, 158, 160
 
-Version 1.0.7j
+## 1.0.7j
+
 - Random flailing trying to figure out why it works for some people and not others
 
-Version 1.0.7i
+## 1.0.7i
+
 - Fix casting failure after skill-up
 
-Version 1.0.7h
+## 1.0.7h
+
 - Tighten up the click-to-cast code a little bit more
 - Updated German translation (thanks DirtyHarryGermany!)
 - Updated Simplified Chinese translation (thanks again dh0000!)
 - Update LibTourist and LibBabble-Zone (no more hacks for Darkmoon Faire!)
 
-Version 1.0.7g
+## 1.0.7g
+
 - Another attempt at fixing random "no more casting" issues
 - Update LibTourist library
 
-Version 1.0.7f
+## 1.0.7f
+
 - Clean up pet handling
 - Fixes for Curse Bugs: 147
 - Don't look for missing fish errors anymore, since there aren't any
 - Fix "stop fishing" after lure expires bug (hopefully)
 
-Version 1.0.7e
+## 1.0.7e
+
 - Fix fishing library for when LOOT_CLOSED happens before LOOT_OPENED
 - Per WindShak, remove extraneous esMX translations
 - Updated Chinese translations (zhTW by Andyca, zhCN by dh0000)
 - Updated support libraries
 - Update to nerfed fish per skill point table
 
-Version 1.0.7d
+## 1.0.7d
+
 - Clean up options pane
 - Get all minimap button options in one place
 - Nicer fishing pet menu
 - Display tooltips on "auto-disabled options" with explanations
 - Fix bad interaction when casting with Fishing Ace! loaded (CurseForge bug FA #9, 11)
 
-Version 1.0.7c
+## 1.0.7c
+
 - Updated Simplified Chinese translation (zhCN)
 - Fix for CurseForge ticket 140, 91
 - Clean up minimap button movement for non-standard minimap shapes
 
-Version 1.0.7b
+## 1.0.7b
+
 - Fix Blizzard Equipment Manager support
 - Add Sea Pony to fishing pet list
 
-Version 1.0.7a
+## 1.0.7a
+
 - Update libraries (hopefully this will fix some issues with Darkmoon)
 - Added some temporary information about fishing levels in Darkmoon
 - Update Simplified Chinese translation -- thanks dh0000 on Curse!
@@ -1087,28 +1339,34 @@ Version 1.0.7a
 - Added Brazilian Portuguese translation -- thanks nomadbr on Curse!
 - Update the About box to include all the new people to thank!
 
-Version 1.0.7
+## 1.0.7
+
 - Update TOC
 - Updated support libraries
 
-Version 1.0.6a
+## 1.0.6a
+
 - Fix typo in skill up handling
 
-Version 1.0.6
+## 1.0.6
+
 - Handle zones with non-uniform skill levels (Thanks El!)
 - Fix graphic for pool display
 - Update supporting Lib-Babble*, LibCrayon libraries
 
-Version 1.0.5
+## 1.0.5
+
 - Updated libraries
 - Updated German translation
 - Option to force the sound on if it is off when we start to fish (Curse #112)
 - Make fishing volume a slider instead of always 100%
 
-Version 1.0.4a
+## 1.0.4a
+
 - Fix Curse bug #130 (and many duplicates)
 
-Version 1.0.4
+## 1.0.4
+
 - Update TOC
 - Add option for "maximum volume" while fishing
 - Add option for "always turn on sound" while fishing
@@ -1116,16 +1374,19 @@ Version 1.0.4
 - Update libraries
 - FIx CurgeForge bug #128, #129
 
-Version 1.0.3a
+## 1.0.3a
+
 - Fix a typo in the underlying fishing library (thanks callumw!)
 - Fix a possible crash on startup when initializing the "caught so far" counter
 
-Version 1.0.3
+## 1.0.3
+
 - Fix for Curse bugs #122, #123 (deDE, ruRU, zhTW)
 - Another try at making sure we handle the lure of last resort correctly
 - Updated support libraries
 
-Version 1.0.2
+## 1.0.2
+
 - Update TOC for 4.1
 - Updated translations (thank you Curseforge translators!)
 - Don't cast while flying or mounted
@@ -1133,7 +1394,8 @@ Version 1.0.2
 - Fix for Curse bugs: 116, 117, 113
 - Update fishing lure table (Glass Fishing Bobber)
 
-Version 1.0.1
+## 1.0.1
+
 - New option to apply a lure, even if it doesn't help (Lure of last resort)
 - Fix for auto-open fish stuff (thanks Bodar!)
 - Fix for time display in the watcher (once you fish for over a day -- thanks Wildcard_25!)
@@ -1141,16 +1403,19 @@ Version 1.0.1
 - Crashes on exit should be fixed now (Curse #105 -- thanks for the hints x87bliss!)
 - Fix for Curse bugs: #103 (#107), #105, #101, #109, #105, #104
 
-Version 1.0
+## 1.0
+
 - An About box, finally!
 - Miscellaneous small bug fixes
 - Latest libraries
 - Updated translations from Curse
 
-Version 0.9.9e5
+## 0.9.9e5
+
 - Remove debugging code from the fishing library (doesn't effect FB, but it does have an affect on FB_Broker and Fishing Ace!)
 
-Version 0.9.9e4
+## 0.9.9e4
+
 - Rewrite the fish watcher so that it doesn't do *anything* unless you:
 	* Catch a fish
 	* Change zone/subzones
@@ -1170,18 +1435,21 @@ Version 0.9.9e4
 - Display the number of fish we need in the contest window, be better about tracking when it starts
 - More cleanup to pet code, it should be more stable and now it works the way I want it to :-)
 
-Version 0.9.9e3
+## 0.9.9e3
+
 - Fix WoW client crashes when exiting with a Fishing Pole equipped and enhance sounds turned on
 - Update Equipment Manager to new API changes (works again)
 - Latest version of LibTourist
 - CurseForge bug #81, #37
 
-Version 0.9.9e2
+## 0.9.9e2
+
 - Clean up Outfitter interaction. It now uses Outfitter's "smart outfits" (NB This doesn't include the fishing hats
   or boots at this time, so you'll have to add those manually)
 - Yet another attempt to make logging in wearing fishing gear work correctly again
 
-Version 0.9.9e
+## 0.9.9e
+
 - Integration with FishWarden (from x87bliss). If FishWarden is enabled, FB won't attempt to auto loot.
 - New option to "automatically" open quest fish
 - Auto-apply "Overgrown Earthworm" if easy lure is turned on
@@ -1194,26 +1462,31 @@ Version 0.9.9e
 - More fixes to work around other addons that modify tooltips and Blizz issues
 - Fixes for Curse bugs #71 (no rum bonus), #57 (catches to level), #51, #53, #59, #38, #52 and #33 (pets), #68 (German bonus check)
 
-Version 0.9.9d
+## 0.9.9d
+
 - New version of Astrolabe (thanks Esamynn!)
 - Fix bugs in getting fishing bonuses (better tooltip management)
 - Latest LibTourist and LibBabble libraries (fixes errors)
 
-Version 0.9.9c
+## 0.9.9c
+
 - FIxes for CurseForge bugs
   - C#58, #C61 -- Astrolabe errors in instances and during 'porting
   - C#59 -- Extravaganza announcement error
   - C#55 -- Unable to move fish watcher frame
 
-Version 0.9.9b
+## 0.9.9b
+
 - Clean up tooltip handling -- pole recognition code should be more consistent
 - Add code to calculate fishing bonuses since we can't get it from Blizz
 - Update to latest LibBabbleZone
 
-Version 0.9.9a
+## 0.9.9a
+
 - Fixed one more UI change (GetSpellBookItemName)
 
-Version 0.9.9
+## 0.9.9
+
 - Update TOC to 4.0.1
 - Many changes to work with 4.0.1 API changes
 - Added option to increase the "sparklies" on pools while fishing (thanks Lufunpsy!)
@@ -1222,45 +1495,55 @@ Version 0.9.9
 - Fix some typos in various messages (CF Issue #31)
 - Update to latest LibBabble-Zone and LibTourist
 
-Version 0.9.8p1
+## 0.9.8p1
+
 - Bug fix for locale discovery code
 
-Version 0.9.8p
+## 0.9.8p
+
 - Clean up duplicated zones (should fix non-enUS clients)
 - Hopefully don't create new zones without reason (tested with esMX client)
 - Update to latest version of LibBabble-Zone
 
-Version 0.9.8o
+## 0.9.8o
+
 - Count contest fish correctly (fixed a typo)
 
-Version 0.9.8nP1
+## 0.9.8nP1
+
 - Fix hang in tracking options when there only a few fish in the database
 
-Version 0.9.8n
+## 0.9.8n
+
 - Make sure LibGraph is included in FB_TrackingFrame (svn error)
 - Fix bad call to UpdateMinimap for option menu
 - Handle default outfit manager better (and prefer ODF is we don't have a setting)
 - Use the same icon as Blizz for "General" options
 - Check for valid outfit right before we show it, so that it isn't red when we log in
 
-Version 0.9.8m
+## 0.9.8m
+
 - Fix missing options pane (event firing order weirdness between reload and login)
 
-Version 0.9.8l
+## 0.9.8l
+
 - Preliminary Russion translation from StingerSoft (thanks!)
 
-Version 0.9.8k
+## 0.9.8k
+
 - Fix startup error in contest timer display
 - Clean up outfit manager handling
 - Begin major rewrite of outfit display plugin
 - Make the marked fishing more transparent
 - Hide and show pools work immediately now
 
-Version 0.9.8j
+## 0.9.8j
+
 - Use GetPlayerFacing() to determine where to mark a school, since it appears
   to work just fine regardless of your interface settings
 
-Version 0.9.8i
+## 0.9.8i
+
 - Watch ITEM_LOCK_CHANGED again
 - Generalize fish pool handling
 - Add "Derby" support to the Extravaganza timer
@@ -1269,43 +1552,52 @@ Version 0.9.8i
 - Allow option tabs to be hidden (for outfit display)
 - If FishingAce is loaded, turn off easy cast (since it's basically the same code)
 
-Version 0.9.8h
+## 0.9.8h
+
 - Fixed multiple bugs from the Curse tracker ("UNKNOWN" zone handling, world mouse hook,
   minimap toggling)
 - Add the "None" outfit manager as the default
 
-Version 0.9.8g
+## 0.9.8g
+
 - Use PLAYER_EQUIPMENT_CHANGED instead of ITEM_LOCK_CHANGED
 - Use latest Babble libraries
 
-Version 0.9.8f
+## 0.9.8f
+
 - Fix a bug in the locations frame checkbox handling
 
-Version 0.9.8e
+## 0.9.8e
+
 - Remove "Be Salty" option since we can't change our own titles now
 - Add "Any pole" option to outfit display
 - Update fishing enchantment finder code for bonus display
 - Preliminary "switch to weapons" when attacked option
 
-Version 0.9.8d
+## 0.9.8d
+
 - More minor fixes to pet summoning
 - Update TOC
 - Fix changed method names in option frame support
 
-Version 0.9.8c
+## 0.9.8c
+
 - Add "Include all pets" option
 - Fix broken pet summoning
 - Add in all extra trash fish from new areas
 - Upgrade to latest Babble and Tourist libraries
 
-Version 0.9.8b
+## 0.9.8b
+
 - Add "Random" as an option for the pet to bring out when you're fishing
 - FIx bug where it sets your title to "None" if you don't have "Salty"
 
-Version 0.9.8a
+## 0.9.8a
+
 - Add "None" as an option for the pet to bring out when you're fishing
 
-Version 0.9.8
+## 0.9.8
+
 - Completely rewritten options pane to handle even more settings
 - Added option to control whether or not you use Captain Rumsey's Lager
 - FB_Broker will now "work" standalone -- no outfit switching, just display
@@ -1314,62 +1606,75 @@ Version 0.9.8
 - Double-click loot-and-recast working again
 - You can now pick a title and a fishing reward pet to use while you're fishing
 
-Version 0.9.7l
+## 0.9.7l
+
 - Add "Watch Bobber" option. When disabled, FB will *not* attempt to prevent you
   from double clicking on the bobber (which should match the 0.9.7c behavior)
 
-Version 0.9.7k
+## 0.9.7k
+
 - Fix a typo in the Equipment Manager support
 
-Version 0.9.7j
+## 0.9.7j
+
 - The Equipment Manager now handles the switch correctly
 - Fix up a lot of places where I was using 'this' instead of 'self'
 - Use the wowace version of LibTourist, now that my changes are in
 
-Version 0.9.7i
+## 0.9.7i
+
 - Fix resetting elapsed fishing time counter
 - Fix "FishingOutfitTooltip" not found error when FB_OutfitDisplayFrame isn't used
 - Fix missing bonus and style display in FB_OutfitDisplayFrame
 - Latest LibTourist changes (I'm working on getting integrated with the official version)
 - Latest LibBabble-Zone
 
-Version 0.9.7h
+## 0.9.7h
+
 - Rearrange startup order so that we can find fishing skill before we look for an outfit
 - Fix some outfit manager bugs now that we have three different managers supported
 - Rework event-handling for plugins so that it's completely separate
 - When using the Equipment Manager, build the best fishing outfit we can from the bags
 
-Version 0.9.7g
+## 0.9.7g
+
 - Support for Blizzard's Equipment Manager
 - LDB support (FB_Broker)
 - "Trash Compaction" by rolling up trash into a single line in the watcher
 - Don't auto-lure for random trash, only for missed fish crap
 
-Version 0.9.7f
+## 0.9.7f
+
 - Hide the tooltip if we click near the bobber, don't cast if the second click is on it as well
 - If fishing skill is too low, pick the smallest lure that will get us fishing
 
-Version 0.9.7e
+## 0.9.7e
+
 - Rewrote how the watcher is displayed (dynamic creation of lines now), prep for text output
 - Attempt to fix the casting issue some people are running into
 
-Version 0.9.7d
+## 0.9.7d
+
 - New Spanish translation from Fili
 - New Chinese (zhTW) translation from Indra
 - Update for German from Leidbringer
 - Fishing watcher can be dragged around again!
 - Turn off "single cast after missing the water" -- it's not worth the breakage
 
-Version 0.9.7c
+## 0.9.7c
+
 - Belt and suspenders, try multiple methods to figure out if you're wielding a fishing pole
 
-Version 0.9.7b
+## 0.9.7b
+
 - Fix index out of range error on ITEM_QUALITY_COLORS lookup
 
-Version 0.9.7a
+## 0.9.7a
+
 - Make sure we only look for UI error messages when we're fishing
 
-Version 0.9.7
+## 0.9.7
+
 - Display your chances of catching a fish in the current zone (on the "display current zone" line)
 - If you fish up junk (besides Felblood Snapper), do the auto-lure dance
 - Rework auto lure so that it tries to pick the lowest possible lure for the zone
@@ -1381,46 +1686,56 @@ Version 0.9.7
 - Don't count "quest fish" in the percentage calculations of catches
 - Found the issue with tooltips disappearing randomly
 
-Version 0.9.6p
+## 0.9.6p
+
 - Add "Glow Worm" to recognized fishing lures
 - Blizz removed "math.randomseed", so assume we're already random enough
 - Make the times in the elapsed time indicator synchronized
 - Minor cleanup to the totals display from 0.9.6o
 - Minor changes to the locations display
 
-Version 0.9.6o
+## 0.9.6o
+
 - Update TOC to patch 3.1
 - Fix annnoying issue with swapping outfits with full bags
 - Miscellaneous bug fixes
 
-Version 0.9.6n
+## 0.9.6n
+
 - Update so that the various add-on sites think this is being maintained
 - Add '/fb timer reset' command to re-center the extravaganza time window if it gets lost
 - Update to latest BabbleZone
 
-Version 0.9.6m
+## 0.9.6m
+
 - Fishing watcher notices when you change zones again (MINIMAP_ZONE_CHANGE doesn't fire anymore!)
 
-Version 0.9.6l
+## 0.9.6l
+
 - Fix the math behind the percentages when fishing up coins in Dalaran
 - Update to the latest LibBabble-Zone
 
-Version 0.9.6k
+## 0.9.6k
+
 - Only show the total number of each kind of "fountain" coin in the Fish Watcher
 
-Version 0.9.6j
+## 0.9.6j
+
 - Fix a bug that only happens if you can't catch a fish because of low skill in a new zone
 
-Version 0.9.6i
+## 0.9.6i
+
 - Fix a null reference error checking for max fishing skill in the watcher
 - Put the extravaganza timer in the background again
 
-Version 0.9.6h
+## 0.9.6h
+
 - If we don't have a translation for a zone, use "UNKNOWN"
 - Upgrade to version r161 of LibBabble-Zone
 - Smarter item matching in OutfitDisplayFrame
 
-Version 0.9.6g
+## 0.9.6g
+
 - Support for automatically using the "Find Fish" ability when you're appropriately dressed
 - By popular requeset, drink heavily while fishing
 - Clean up zone and fish database display so it looks better
@@ -1428,44 +1743,54 @@ Version 0.9.6g
 - Clean up of enabling/disabling code in the options dialog
 - Update to latest version of LibBabble-Zone
 
-Version 0.9.6f
+## 0.9.6f
+
 - If there's a cooldown on a lure, skip it this time
 
-Version 0.9.6e
+## 0.9.6e
+
 - Don't process UIError message calls with no message
 - Add a slider to determine how far "out" to put the minimap button
 
-Version 0.9.6d
+## 0.9.6d
+
 - Tighten up free space check in OutfitDisplayFrame
 - Use the in-game calendar to find out if it's Extravaganza day
 - Clean up help system so that plugin commands show up too
 - Catch the "fishing skill too low" message for auto lure
 
-Version 0.9.6c
+## 0.9.6c
+
 - Catch new fishing skill too low message for auto lure
 - Fishing timers work once more
 
-Version 0.9.6b
+## 0.9.6b
+
 - Extravaganza timer works again
 - Use new "count empty space" functions instead of GetContainerID
 - Support for playing sounds in the background while fishing (by request!)
 
-Version 0.9.6a
+## 0.9.6a
+
 - Fix problem with clock offset code in Extravaganze support
 
-Version 0.9.6
+## 0.9.6
+
 - Rewrite for patch 3.0.2 and update TOC
 - Move common fishing routines into a library
 - Use LibCrayon for colors instead of custom code
 - Start using LibTourist etc. to support future work
 
-Version 0.9.5
+## 0.9.5
+
 - Not released
 
-Version 0.9.4m
+## 0.9.4m
+
 - Fix Easy Cast for Patch 2.4.3
 
-Version 0.9.4l
+## 0.9.4l
+
 - Fix for broken fishing after getting attacked while putting on a lure
 - When showing elapsed time:
    * Show total amount of time you've spent fishing (well, holding a pole)
@@ -1474,40 +1799,51 @@ Version 0.9.4l
   override right clicks with a secure frame
 - Show the total skill as well as 'skill + mods' in the watcher
 
-Version 0.9.4k
+## 0.9.4k
+
 - "Show current skill" works again when you have 375 skill
 
-Version 0.9.4j
+## 0.9.4j
+
 - Fixed the "use an item" code, the new fishing hat should work just fine now
 
-Version 0.9.4i
+## 0.9.4i
+
 - Add "Weather-Beaten Fishing Hat" to lures table (I hope!)
 - Add "Always Lure" option to easy lures
 - Don't display fish needed to skill up when you're at 375
 
-Version 0.9.4h
+## 0.9.4h
+
 - Add "Sharpened Fish Hook" to lures table
 
-Version 0.9.4g
+## 0.9.4g
+
 - Update TOC across the board and normalize versions
 
-Version 0.9.4e
+## 0.9.4e
+
 - Fix a typo in the outfit manager code
 
-Version 0.9.4d
+## 0.9.4d
+
 - Remove all tooltip code since it wasn't working (turned on!) and was causing problems
 - I think that I have fixed the "can't fish after fighting" issue
 
-Version 0.9.4c
+## 0.9.4c
+
 - Fix a bug in the Merge Database translations that caused an error in FishingSetup
 
-Version 0.9.4b
+## 0.9.4b
+
 - Updated zhTW translations from Indra (是誰 愛誰), for Merge and Tracking as well!
 
-Version 0.9.4a
+## 0.9.4a
+
 - Turn of PvP while fishing (Good luck mysticalos! :-)
 
-Version 0.9.4
+## 0.9.4
+
 - New, smarter auto lure code. Only apply a lure if we need one (i.e. we lost
   a fish or we can't fish here)
 - znTW translations by Indra (是誰 愛誰)
@@ -1515,36 +1851,46 @@ Version 0.9.4
 - Add the approximate number of fish you need to catch to skill up. -- Thanks
   Goose and Moleculor!
 
-Version 0.9.3i
+## 0.9.3i
+
 - Update TOC
 
-Version 0.9.3h
+## 0.9.3h
+
 - Don't remove Outfitter sets unless there's more than one called "Fishing Buddy"
 - Try and keep the watcher from popping over everything
 
-Version 0.9.3g
+## 0.9.3g
+
 - Make the action bar code more efficient
 - Really, really remove the broadcasting of fish catches
 
-Version 0.9.3f
+## 0.9.3f
+
 - Add an option to use an action bar button to cast, instead of using the spell name
 
-Version 0.9.3e
+## 0.9.3e
+
 - Add some code to make sure we dump the auto lure information when it's done
 
-Version 0.9.3d
+## 0.9.3d
+
 - Add simplified Chinese translation (thanks biaji!)
 
-Version 0.9.3c
+## 0.9.3c
+
 - Fix a possible error when a plugin doesn't have a full set of translations
 
-Version 0.9.3b
+## 0.9.3b
+
 - Handle new sound variable names
 
-Version 0.9.3a
+## 0.9.3a
+
 - Update TOC version
 
-Version 0.9.3
+## 0.9.3
+
 - Removed the fish broadcast, it doesn't work the way I want it (going to move it
   to FishNet)
 - Added Taiwanese translation (thanks Indra!)
@@ -1554,44 +1900,56 @@ Version 0.9.3
 - Cleanup upgrade code, should fix broken upgrades *and* handle upgrades from 0.8.6!
 - Don't show the minimap button if we failed to initialize
 
-Version 0.9.2b
+## 0.9.2b
+
 - Fix key binding for switching
 
-Version 0.9.2a
+## 0.9.2a
+
 - Fix issues with noticing when you equip and unequip a fishing pole
 
-Version 0.9.2
+## 0.9.2
+
 - Fix issues with fishing suddenly not working in the middle of the game
 
-Version 0.9.1
+## 0.9.1
+
 - Better handling of automatic lures (thanks ZeroKnowledge!)
 - Update toc
 
-Version 0.9g
+## 0.9g
+
 - Be smarter when looking for lures to apply
 - Fix help message output bug
 
-Version 0.9f
+## 0.9f
+
 - Go back to the old way of finding out if you're using a fishing pole
 - Fix tasty fish counting during the Extravaganza
 
-Version 0.9e
+## 0.9e
+
 - Okay, this time it really won't duplicate subzones while you fish...
 
-Version 0.9d
+## 0.9d
+
 - Fix bug in reorganization of location frame display code
 
-Version 0.9c
+## 0.9c
+
 - Fix for the long standing bug where new fish don't show up in the fish pane
 - Hopefully also fix data collection errors in BC (hopefully getting it today myself :-)
 
-Version 0.9b
+## 0.9b
+
 - Fix for initialization error with Outfitter 2.0
 
-Version 0.9a
+## 0.9a
+
 - Fix TOC (20003)
 
-Version 0.9
+## 0.9
+
 - Easy Cast is back!
 - Easy Lures is back
 - Remove Gatherer support (their API no longer handles FISH cleanly)
@@ -1602,78 +1960,96 @@ Version 0.9
 - Don't break mouselook
 - Fixed some errors upgrading from an older versions
 
-Version 0.8.9b
+## 0.8.9b
+
 - Update TOC for patch 2.0.3
 - Support negative numbers in link parsing
 
-Version 0.8.9a
+## 0.8.9a
+
 - Fix a missing 'ipairs' for 2.0 compatibility in the Extravaganza code
 
-Version 0.8.9
+## 0.8.9
+
 - Send a fish caught message using the new SendAddonMessage API
 - Fix a bug where saving the outfit manager wasn't working (Thanks dwex!)
 - Style points are back (and in OutfitDisplayFrame tooltips -- thanks Shadrin!)
 - Update 'for' loops to be compatible with Lua 5.1
 - Updated German translation (thanks Chinkuwaila!)
 
-Version 0.8.8e
+## 0.8.8e
+
 - Split out FBEnEspagnol to a separate download
 
-Version 0.8.8d
+## 0.8.8d
+
 - Update toc for patch 1.12
 - Small cleanup changes
 
-Version 0.8.8c
+## 0.8.8c
+
 - Handle "Oil Spills" as fishing pools
 - Fix an intermittent text alignment bug in the locations window
 - Make FishingBuddyFu for Fubar 2.0 work nicely (mostly expose some functions)
 
-Version 0.8.8b
+## 0.8.8b
+
 - Add tracking selection menu to locations window
 
-Version 0.8.8a
+## 0.8.8a
+
 - Fix a nil error in the tracking popup if you haven't caught one of the
   default fish
 - '/fb updatedb' print out a message
 - Grab the names of fish we catch if we don't know it already (old data updating)
 
-Version 0.8.8
+## 0.8.8
+
 - Improved cycle fish tracking -- right-click to choose fish to graph
 - Update the TastyFish count every time the window is shown during the
   Exravaganza so that our count is always 'right'
 - Fix window always showing bug
 
-Version 0.8.7g
+## 0.8.7g
+
 - Fix a typo introduced in version f
 - Really, really check for Pat Nagle's Fish Terminator correctly (thanks Saur!)
 
-Version 0.8.7f
+## 0.8.7f
+
 - Put changes from d and e into the same release
 
-Version 0.8.7g
+## 0.8.7g
+
 - Fix a typo introduced in version f
 - Really, really check for Pat Nagle's Fish Terminator correctly
 
-Version 0.8.7f
+## 0.8.7f
+
 - Put changes from d and e into the same release
 
-Version 0.8.7e
+## 0.8.7e
+
 - Fix missing color 'YELLOW'
 - Fix translation errors that were causing string.format errors in German and Spanish
 - Fix problems with the Terminator
 
-Version 0.8.7d
+## 0.8.7d
+
 - Fix broken minimap enable logic for menus
 - Fix nil error in startup conversion of old versions
 
-Version 0.8.7c
+## 0.8.7c
+
 - Fix incompatibility with version 1.11 and highlight text
 
-Version 0.8.7b
+## 0.8.7b
+
 - Clean up event handling some more (only listen when we're fishing)
 - Fix 'doubled' fishing location display for new fishing areas
 
-Version 0.8.7a
+## 0.8.7a
+
 - Hopefully fix an intermittent bug that crashes the client during
   the Extravaganza when leaving Booty Bay
 - Stop losing the OutfitDisplayFrame outfit when logging out
@@ -1681,7 +2057,8 @@ Version 0.8.7a
 - Add in 'FBEnEspagnol' for Spanish-speaking fisherbuddies
 - Use the now-builtin Outfitter 'find by stat' function
 
-Version 0.8.7
+## 0.8.7
+
 - Integration with Gatherer (depends on the tooltip when you cast)
 - Add a 'hide these icky fish' menu to the watcher window
 - Put the keybinding for 'Suit Up and Go Fishing!' back in
@@ -1701,10 +2078,12 @@ Version 0.8.7
 - Don't allow a recast if the fishing loot window is up
 - Add 'updatedb' command to link info for fish with missing data (can disconnect!)
 
-Version 0.8.6h
+## 0.8.6h
+
 - Fast Cast is back!
 
-Version 0.8.6g
+## 0.8.6g
+
 - Fixed a nil reference bug in binding the keys that happens to some people (but
   this makes easy cast not work, I still need to figure out what's happening)
 - Made the Fish Watcher window relative to UIParent and implement 'hover' dragging
@@ -1712,33 +2091,40 @@ Version 0.8.6g
 - Made click-to-move support a little more predictable. If you don't have a casting
   modifer set, then click-to-move is turned off while you're fishing.
 
-Version 0.8.6f
+## 0.8.6f
+
 - Remove some debugging that broke when DevTools wasn't installed
 
-Version 0.8.6e
+## 0.8.6e
+
 - Easy Cast is back (Fast Cast is no more). Thanks to the Cosmos team who
   figured out the appropriate place for hooking in the handling code -- it
   was a snap to add in!
 - Removed the "Suit up and go fishing" stuff since we don't need it any more
 
-Version 0.8.6d
+## 0.8.6d
+
 - Fix a bunch of small errors that never showed up before
 - Add 'mouse fishing' option that binds the middle button (BUTTON3) to
   'cast now' (may not be necessary since 'Suit up and go fishing' works...)
 
-Version 0.8.6c
+## 0.8.6c
+
 - Mark OutfitDisplayFrame as version 1.10 compatible
 
-Version 0.8.6b
+## 0.8.6b
+
 - Update for patch 1.10 (11000)
 - Partial Spanish translation, thanks to fili
 - Some fixes that now don't make much difference because of 1.10
 
-Version 0.8.6a
+## 0.8.6a
+
 - Fixes for handling Eternium enchant correctly
 - Fix bug in 'Suit up and go fishing' handler
 
-Version 0.8.6
+## 0.8.6
+
 - Rework easy cast to work with 1.10 -- no dice yet though :-(
 - Add "Suit up and go fishing" binding for an alternate 1.10 when "Easy Cast" no longer works
 - Outfitter support
@@ -1746,30 +2132,38 @@ Version 0.8.6
   in translations
 - Fix for Eternium Line enchant (the tooltip string changed)
 
-Version 0.8.5g
+## 0.8.5g
+
 - Include OutfitDisplayFrame fix for nil error when fewer than five bags
 
-Version 0.8.5f
+## 0.8.5f
+
 - Auto-set sound volumes to make the bobber noise stand out (Good suggestion SBaL!)
 
-Version 0.8.5e
+## 0.8.5e
+
 - Don't count "Nat Pagle's Fish Terminator" as a fishing pole, even if it looks like one
 
-Version 0.8.5d
+## 0.8.5d
+
 - Fix a nil error in comparison after we've shrunk a table
  
-Version 0.8.5c
+## 0.8.5c
+
 - Fix nil error in cleanup command
 - Missing string in French translation for checking not to lure while clicking on the
   bobber (it's still not the right translation though, hint hint!)
 
-Version 0.8.5b
+## 0.8.5b
+
 - Handle defaulting to 'English' correctly if we don't have a valid translation
 
-Version 0.8.5a
+## 0.8.5a
+
 - Fix French localization file
 
-Version 0.8.5
+## 0.8.5
+
 - Add partial French translation, thanks to Corwin Whitehorn
 - Support for Titan v2.08
 - Support for InfoBar
@@ -1785,7 +2179,8 @@ Version 0.8.5
 - Fix for menu popup outside of minimap button
 - Don't do 'easy lures' if we're about to click on the bobber
 
-Version 0.8.4f
+## 0.8.4f
+
 - Change line endings to DOS again, seems to fix some LUA loading errors
 - Fix location scrollbar position for 1.9
 - Update to new numbering scheme for version
@@ -1797,14 +2192,16 @@ Version 0.8.4f
 - Fishing Extravaganza countdown timer
 - Keep track of Tastyfish "schooling" locations
 
-Version 0.8.3
+## 0.8.3
+
 - Update style and skill messages in outfit display to handle new 'dressing room' feature
 - Make sure that errors in switching outfits don't erase what we changed out of
 - Handle elapsed time even if OutfitDisplayFrame is disabled
 - Make sure we're not already switching outfits before we try again
 - Improved ButtonHole support
 
-Version 0.8.2
+## 0.8.2
+
 - 'Cycle fish' graphs for the main cycle fish (additional fish coming soon)
 - New minimap button support
 - Display current zone in the fish watcher
@@ -1816,18 +2213,21 @@ Version 0.8.2
 - Support for 'ButtonHole' -- if that addon gets finished it'll be way cool
 - OutfitDisplayFrame support improved
 
-Version 0.8.1d
+## 0.8.1d
+
 - Better German help. Thanks blackrat!
 - '/fb import' import information from Impp's fishinfo, DataFish, or Fishinfo2 databases
 - '/fb current reset' to restart the current session fish counts
 - Some small internal code cleanup
 
-Version 0.8.1
+## 0.8.1
+
 - Fixed an error in the German help system (I hope!)
 - '/fb watcher unlock/lock/reset' to move the fish watcher
 - Display percentage per zone when viewing 'by fish' so you can find those hot spots
 
-Version 0.8
+## 0.8
+
 - Display your current skill in the watch frame
 - Track fish by zone and subzone (converts old data as you visit your old fishing haunts)
 - Track minimum skill for locations and for fish types
@@ -1840,27 +2240,32 @@ Version 0.8
 - Track 'cycle fish' information (very preliminary)
 - OutfitDisplayFrame is now optional if you have an equipment manager you prefer
 
-Version 0.7.9c
+## 0.7.9c
+
 - Fix the I can't believe it worked! bug when looking for the Fishing skill
 
-Version 0.7.9b
+## 0.7.9b
+
 - It works even if you've never used Fishing Buddy before!
 
-Version 0.7.9
+## 0.7.9
+
 - Really fix the per-server settings
 
 I aplogize for those people whose options got lost -- this time I got it right! I have
 no idea why the zip file didn't get uploaded last night, but the new one is good. Thank
 you for your patience!
 
-Version 0.7.8
+## 0.7.8
+
 - a very preliminary German translation
 - myAddOns support
 - prefs are now stored by server for each toon
 
 The Titan panel support is still preliminary -- I want to make it default to 'on' and have a better icon. There are still things I'd like to have options for (like sorting the watch panel various ways and making it movable), but I'm going to concentrate on the outfit pieces so that they work for more situations.
 
-Version 0.7.7
+## 0.7.7
+
 - Fix ugly display when switching between fish and locations
 - Added Titan panel support (ugly icon, need to polish up my image skills and make a nice gold one)
 - Sort the 'Fish Watcher' by name (for now)
@@ -1869,10 +2274,12 @@ Version 0.7.7
 
 Auto-loot (shift right click) works for me 'as is' -- I'll have to play with key mappings to see if there's one that stops this from working...
 
-Version 0.7.6
+## 0.7.6
+
 - Add an option to leave off those pesky percentages
 - Add an option to only watch the fish while you're actually fishing
 - Update the version of OutfitDisplayFrame
 
-Version 0.7.5
+## 0.7.5
+
 - fix a bad memory leak on the outfit display page

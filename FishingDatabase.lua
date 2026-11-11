@@ -461,6 +461,15 @@ function FBI:AddFishie(color, id, name, mapId, subzone, texture, quantity, quali
 		end
 	end
 
+	-- Locations has already saved this catch. Record the Journal here too,
+	-- before UI callbacks can fail and prevent later handlers from running.
+	if ( self.Stats ) then
+		if ( FL:IsMissedFish(id) ) then
+			self.Stats:Miss();
+		else
+			self.Stats:ObserveCatch("slot", id, quantity);
+		end
+	end
 	FBI:RunHandlers(FBConstants.ADD_FISHIE_EVT, id, name, mapId, subzone, texture, quantity, quality, level, idx, poolhint);
 end
 

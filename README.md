@@ -1,9 +1,9 @@
-# Catchy
+# Reel Catchy
 
 > Disclaimer: This project is an unofficial fork of the original FishingBuddy addon on CurseForge.
 > https://www.curseforge.com/wow/addons/fishingbuddy
 
-Catchy keeps track of the fish you catch and helps manage your fishing gear.
+Reel Catchy (folder name: Catchy) keeps track of the fish you catch and helps manage your fishing gear.
 
 ## Features
 
@@ -26,7 +26,7 @@ Catchy keeps track of the fish you catch and helps manage your fishing gear.
 - `/catchy` or `/ca` toggles the Catchy window
 - `/ca help` prints the list of Catchy commands
 - `/ca switch` wears your chosen fishing outfit or switches back
-- `/ca journal` opens the Fishing Journal
+- `/ca journal` opens the Journal page in Catchy settings
 - `/ca radar` toggles nearby fishing pools on the minimap
 
 ## Known Issues

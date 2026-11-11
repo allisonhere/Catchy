@@ -29,10 +29,18 @@ local MAX_SESSIONS = 30;
 local db;
 local lastCastAt = 0;
 local lastCastStartedAt = 0;
+local lastFishingEndedAt = 0;
 local castSerial = 0;
 local pendingCast = nil;
 local lootMoneyBefore = nil;
 local session = nil;
+
+local function RefreshJournal()
+    local settings = FBI.Settings;
+    if ( settings and settings.frame and settings.frame:IsShown() and settings.Refresh ) then
+        settings:Refresh();
+    end
+end
 
 local function Today()
     return date("%Y-%m-%d");
@@ -192,6 +200,7 @@ function Stats:Cast()
     end
     lastCastAt = now;
     lastCastStartedAt = now;
+    lastFishingEndedAt = 0;
     castSerial = castSerial + 1;
     pendingCast = { serial = castSerial, resolved = false, started = now };
     session.casts = session.casts + 1;
@@ -205,6 +214,7 @@ function Stats:Cast()
     db.lifetime.zones = db.lifetime.zones or {};
     BumpNested(day.zones, mapId, "casts", 1, zoneName);
     BumpNested(db.lifetime.zones, mapId, "casts", 1, zoneName);
+    RefreshJournal();
 end
 
 function Stats:Catch(id, quantity)
@@ -263,6 +273,27 @@ function Stats:Catch(id, quantity)
     day.zones = day.zones or {};
     BumpNested(day.zones, mapId, "catches", firstOfCast and 1 or 0, zoneName);
     BumpNested(db.lifetime.zones, mapId, "catches", firstOfCast and 1 or 0, zoneName);
+    RefreshJournal();
+end
+
+-- The loot window and chat can report the same catch in either order. Count the
+-- larger total observed for each item, never the sum of both sources.
+function Stats:ObserveCatch(source, id, quantity)
+    if ( not id or id == 0 ) then return; end
+    quantity = math.max(1, tonumber(quantity) or 1);
+    if ( not pendingCast ) then
+        self:Catch(id, quantity);
+        return;
+    end
+    pendingCast.receipts = pendingCast.receipts or {};
+    local receipt = pendingCast.receipts[id] or { slot = 0, chat = 0, recorded = 0 };
+    pendingCast.receipts[id] = receipt;
+    receipt[source] = (receipt[source] or 0) + quantity;
+    local total = math.max(receipt.slot, receipt.chat);
+    if ( total > receipt.recorded ) then
+        self:Catch(id, total - receipt.recorded);
+        receipt.recorded = total;
+    end
 end
 
 function Stats:Miss()
@@ -282,6 +313,7 @@ function Stats:Miss()
         BumpLifetime("misses", 1);
         RecordOutcome(0);
     end
+    RefreshJournal();
 end
 
 function Stats:Interrupted()
@@ -332,6 +364,7 @@ function Stats:AddGold(copper)
     session.gold = session.gold + copper;
     BumpDaily("gold", copper);
     BumpLifetime("gold", copper);
+    RefreshJournal();
 end
 
 function Stats:Elapsed()
@@ -395,24 +428,50 @@ local function IsFishingSpell(spellid)
     return false;
 end
 
-local function RecentlyFishing()
-    return lastCastAt > 0 and (GetTime() - lastCastAt) < 20;
-end
-
--- Catchy records loot through FBI:AddFishie. Wrapping it gives us a single,
--- reliable catch signal without touching the loot parser.
-local origAddFishie = FBI.AddFishie;
-if ( origAddFishie ) then
-    function FBI:AddFishie(color, id, name, mapId, subzone, texture, quantity, quality, level, it, st, poolhint)
-        origAddFishie(self, color, id, name, mapId, subzone, texture, quantity, quality, level, it, st, poolhint);
-        if ( id and id ~= 0 ) then
-            if ( FL:IsMissedFish(id) ) then
-                Stats:Miss();
-            else
-                Stats:Catch(id, quantity);
+local function ParseOwnLootMessage(message)
+    if ( type(message) ~= "string" ) then return; end
+    local own = message:find("^You receive loot:") or message:find("^You receive item:");
+    if ( not own ) then
+        for _, format in pairs({ LOOT_ITEM_SELF, LOOT_ITEM_SELF_MULTIPLE,
+                                 LOOT_ITEM_CREATED_SELF, LOOT_ITEM_CREATED_SELF_MULTIPLE }) do
+            local prefix = type(format) == "string" and format:match("^(.-)%%");
+            if ( prefix and prefix ~= "" and message:sub(1, #prefix) == prefix ) then
+                own = true;
+                break;
             end
         end
     end
+    if ( not own ) then return; end
+    local id = tonumber(message:match("|Hitem:(%d+)"));
+    if ( not id ) then return; end
+    local afterLink = message:match("|h|r(.*)$") or "";
+    local quantity = tonumber(afterLink:match("[x×]%s*(%d+)")) or 1;
+    return id, quantity;
+end
+Stats.ParseOwnLootMessage = ParseOwnLootMessage;
+
+local function RecentFishingReceipt()
+    if ( not pendingCast or GetTime() - pendingCast.started > 45 ) then return false; end
+    return IsFishingSpell(nil) or (lastFishingEndedAt > 0 and GetTime() - lastFishingEndedAt < 5);
+end
+
+function Stats:MarkFishingEnded()
+    lastFishingEndedAt = GetTime();
+end
+
+function Stats:LootMessage(message)
+    if ( not RecentFishingReceipt() ) then return; end
+    local id, quantity = ParseOwnLootMessage(message);
+    if ( not id ) then return; end
+    if ( FL:IsMissedFish(id) ) then
+        self:Miss();
+    else
+        self:ObserveCatch("chat", id, quantity);
+    end
+end
+
+local function RecentlyFishing()
+    return lastCastAt > 0 and (GetTime() - lastCastAt) < 20;
 end
 
 local eventFrame = CreateFrame("Frame");
@@ -424,6 +483,7 @@ eventFrame:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED");
 eventFrame:RegisterEvent("UNIT_SPELLCAST_FAILED");
 eventFrame:RegisterEvent("LOOT_OPENED");
 eventFrame:RegisterEvent("LOOT_CLOSED");
+eventFrame:RegisterEvent("CHAT_MSG_LOOT");
 
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if ( event == "PLAYER_LOGIN" ) then
@@ -444,6 +504,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             lootMoneyBefore = nil;
             Stats:AddGold(gained);
         end
+    elseif ( event == "CHAT_MSG_LOOT" ) then
+        Stats:LootMessage(...);
     else
         local unit, _, spellid = ...;
         if ( unit ~= "player" ) then
@@ -456,6 +518,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         elseif ( event == "UNIT_SPELLCAST_CHANNEL_STOP" ) then
             if ( IsFishingSpell(spellid) or (FishingModeFrame and FishingModeFrame.fishing_started) ) then
                 lastCastAt = GetTime();
+                Stats:MarkFishingEnded();
                 Stats:CastEnded();
             end
         elseif ( event == "UNIT_SPELLCAST_INTERRUPTED" or event == "UNIT_SPELLCAST_FAILED" ) then
@@ -508,7 +571,7 @@ local function FormatMoney(copper)
 end
 
 local frame = CreateFrame("Frame", "CatchyStatsFrame", UIParent, "BackdropTemplate");
-frame:SetSize(270, 318);
+frame:SetSize(270, 284);
 frame:SetFrameStrata("LOW");
 frame:SetClampedToScreen(true);
 frame:SetMovable(true);
@@ -559,36 +622,6 @@ for _, row in ipairs(ROWS) do
     rowWidgets[row.key] = value;
     y = y - 19;
 end
-
-local journalButton = CreateFrame("Button", nil, frame, "BackdropTemplate");
-journalButton:SetPoint("BOTTOMLEFT", 12, 10);
-journalButton:SetPoint("BOTTOMRIGHT", -12, 10);
-journalButton:SetHeight(24);
-if ( journalButton.SetBackdrop ) then
-    journalButton:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8X8",
-        edgeFile = "Interface\\Buttons\\WHITE8X8",
-        edgeSize = 1,
-    });
-    journalButton:SetBackdropColor(0.11, 0.09, 0.035, 0.96);
-    journalButton:SetBackdropBorderColor(0.82, 0.66, 0.24, 0.9);
-end
-local journalLabel = journalButton:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
-journalLabel:SetPoint("CENTER");
-journalLabel:SetText("OPEN FISHING JOURNAL");
-journalLabel:SetTextColor(1.0, 0.82, 0.28);
-journalButton:SetScript("OnEnter", function(self)
-    if ( self.SetBackdropColor ) then self:SetBackdropColor(0.20, 0.16, 0.05, 1); end
-    journalLabel:SetTextColor(1, 0.94, 0.55);
-end);
-journalButton:SetScript("OnLeave", function(self)
-    if ( self.SetBackdropColor ) then self:SetBackdropColor(0.11, 0.09, 0.035, 0.96); end
-    journalLabel:SetTextColor(1.0, 0.82, 0.28);
-end);
-journalButton:SetScript("OnClick", function()
-    if ( FBI.Journal and FBI.Journal.Open ) then FBI.Journal:Open(); end
-end);
-FBI.StatsJournalButton = journalButton;
 
 local function UpdateValues()
     if ( not EnsureSession() ) then
@@ -699,8 +732,8 @@ FBI:AddCommand("stats", function(what)
 end, "stats [reset] -- toggle the session dashboard or reset the current session");
 
 FBI:AddCommand("journal", function()
-    if ( FBI.Journal ) then FBI.Journal:Toggle(); end
+    if ( FBI.Settings ) then FBI.Settings:Open("journal"); end
     return true;
-end, "journal -- open the Catchy fishing journal");
+end, "journal -- open the Catchy fishing journal settings page");
 
 FBI.StatsFrame = frame;

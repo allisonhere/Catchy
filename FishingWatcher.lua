@@ -343,11 +343,11 @@ local function IsSpecialFish(fishid, itemTexture)
     local silvertexture = "_18";
     local coppertexture = "_19";
 
-    if legion_coins[fishid] then
+    if legion_coins and legion_coins[fishid] then
         if not legion_coins[fishid].show then
             return wish_remover
         end
-    elseif (string.find(itemTexture, basetexture)) then
+    elseif (type(itemTexture) == "string" and string.find(itemTexture, basetexture)) then
         if (string.find(itemTexture, goldtexture)) then
             return goldcoins;
         elseif (string.find(itemTexture, silvertexture)) then
@@ -407,19 +407,23 @@ local function SetupLegionCoinCount()
     local wishid = 10722
     if not wish_remover["text"] then
         local link = GetAchievementLink(wishid)
-        _,_,wish_remover["text"] = string.find(link, _achievement_pattern)
+        if link then
+            _,_,wish_remover["text"] = string.find(link, _achievement_pattern)
+        end
     end
 
     if not legion_coins then
         local ff = Catchy_Info["Fishies"];
 
-        legion_count = GetAchievementNumCriteria(wishid)
+        legion_count = GetAchievementNumCriteria(wishid) or 0
         legion_coins = {}
 
         local done = 0
         for idx = 1, legion_count do
             local name, _, completed, q, r, _, _, id, _, _, _ =  GetAchievementCriteriaInfo(wishid, idx)
-            legion_coins[id] = { ["completed"] = completed, ["show"] = not completed, ["name"] = name }
+            if id then
+                legion_coins[id] = { ["completed"] = completed, ["show"] = not completed, ["name"] = name }
+            end
         end
     end
 end
@@ -434,7 +438,7 @@ local function DisplayLegionCoinCount()
             end
         end
 
-        return wish_remover["text"]..": "..string.format(ACHIEVEMENT_META_COMPLETED_DATE, done.."/"..legion_count);
+        return (wish_remover["text"] or "Legion coins")..": "..string.format(ACHIEVEMENT_META_COMPLETED_DATE, done.."/"..legion_count);
     end
 end
 

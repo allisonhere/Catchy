@@ -391,6 +391,129 @@ function W.Dropdown(label, items, get, set, tip, opts)
     return f, 48
 end
 
+local TIMER_ART = MEDIA .. "media\\"
+local TIMER_STYLES = {
+    { key = "radial", label = "Watch" },
+    { key = "bar", label = "Segmented" },
+    { key = "solid", label = "Mono bar" },
+    { key = "number", label = "Number" },
+}
+
+local function TimerPreview(card, style)
+    if style == "radial" then
+        local face = card:CreateTexture(nil, "ARTWORK")
+        face:SetSize(42, 42)
+        face:SetPoint("CENTER", card, "CENTER", 0, -12)
+        face:SetTexture(TIMER_ART .. "CastTimerClockFace")
+        local ring = card:CreateTexture(nil, "OVERLAY")
+        ring:SetAllPoints(face)
+        ring:SetTexture(TIMER_ART .. "CastTimerClockProgress")
+        local time = Text(card, 13, C.text, "OUTLINE")
+        time:SetPoint("CENTER", face, "CENTER")
+        time:SetText("18")
+    elseif style == "number" then
+        local face = card:CreateTexture(nil, "ARTWORK")
+        face:SetSize(78, 30)
+        face:SetPoint("CENTER", card, "CENTER", 0, -12)
+        face:SetTexture(TIMER_ART .. "CastTimerNumberFace")
+        local time = Text(card, 14, C.text, "OUTLINE")
+        time:SetPoint("CENTER", face, "CENTER", 5, 0)
+        time:SetText("18.0")
+    else
+        local face = card:CreateTexture(nil, "ARTWORK")
+        face:SetSize(style == "solid" and 55 or 122, style == "solid" and 9 or 20)
+        face:SetPoint("CENTER", card, "CENTER", 0, -12)
+        face:SetTexture(TIMER_ART .. "CastTimerBarFace")
+        face:SetTexCoord(0, 228 / 256, 0, 36 / 64)
+        face:SetDesaturated(style == "solid")
+        if style == "bar" then
+            local name = Text(card, 7, C.text, "OUTLINE")
+            name:SetPoint("LEFT", face, "LEFT", 7, 0)
+            name:SetText("FISHING")
+            local time = Text(card, 8, C.text, "OUTLINE")
+            time:SetPoint("RIGHT", face, "RIGHT", -8, 0)
+            time:SetText("18s")
+            for i = 1, 12 do
+                local segment = Tex(card, "OVERLAY", i <= 8 and { 0.22, 0.85, 1 } or { 0.08, 0.15, 0.20 })
+                segment:SetSize(3, 6)
+                segment:SetPoint("LEFT", face, "LEFT", 38 + (i - 1) * 4, 0)
+            end
+            local marker = Tex(card, "OVERLAY", { 1, 0.66, 0.18 })
+            marker:SetSize(2, 8)
+            marker:SetPoint("LEFT", face, "LEFT", 88, 0)
+        else
+            local track = Tex(card, "OVERLAY", { 0.14, 0.14, 0.14 })
+            track:SetTexture(TIMER_ART .. "CastTimerSolidTrack")
+            track:SetTexCoord(0, 208 / 256, 0, 12 / 16)
+            track:SetSize(51, 3)
+            track:SetPoint("LEFT", face, "LEFT", 2, 0)
+            local fill = Tex(card, "OVERLAY", { 0.86, 0.86, 0.86 })
+            fill:SetSize(27, 3)
+            fill:SetPoint("LEFT", face, "LEFT", 4, 0)
+            for index, offset in ipairs({ 2, 31 }) do
+                local cap = Tex(card, "OVERLAY", { 0.86, 0.86, 0.86 })
+                cap:SetTexture(TIMER_ART .. "CastTimerSolidCap")
+                if index == 1 then
+                    cap:SetTexCoord(0, 6 / 16, 0, 12 / 16)
+                else
+                    cap:SetTexCoord(6 / 16, 12 / 16, 0, 12 / 16)
+                end
+                cap:SetSize(2, 3)
+                cap:SetPoint("LEFT", face, "LEFT", offset, 0)
+            end
+        end
+    end
+end
+
+function W.TimerStylePicker()
+    local picker = CreateFrame("Frame", nil, nil)
+    picker:SetSize(COL_W * 2 + COL_GAP, 88)
+    local cards = {}
+    for index, style in ipairs(TIMER_STYLES) do
+        local card = CreateFrame("Button", nil, picker)
+        card:SetSize(139, 88)
+        card:SetPoint("TOPLEFT", picker, "TOPLEFT", (index - 1) * 147, 0)
+        Tex(card, "BACKGROUND", C.card):SetAllPoints()
+        card.border = Border(card, C.line)
+        local title = Text(card, 11, C.text)
+        title:SetPoint("TOP", card, "TOP", 0, -8)
+        title:SetText(style.label)
+        TimerPreview(card, style.key)
+        card:SetScript("OnClick", function()
+            FBI:SetSetting("CastTimerStyle", style.key)
+            FBI:OptionsUpdate()
+            Click(true)
+            Settings:Refresh()
+        end)
+        card:SetScript("OnEnter", function(self)
+            if style.key == "solid" then
+                self.border:SetColor(0.86, 0.86, 0.86, 0.85)
+            else
+                self.border:SetColor(AC[1], AC[2], AC[3], 0.85)
+            end
+        end)
+        card:SetScript("OnLeave", function() picker:Refresh() end)
+        cards[index] = card
+    end
+    function picker:Refresh()
+        local current = FBI:GetSetting("CastTimerStyle")
+        for index, card in ipairs(cards) do
+            if TIMER_STYLES[index].key == current then
+                if current == "solid" then
+                    card.border:SetColor(0.86, 0.86, 0.86, 1)
+                else
+                    card.border:SetColor(AC[1], AC[2], AC[3], 1)
+                end
+            else
+                card.border:SetColor(1, 1, 1, 0.12)
+            end
+        end
+    end
+    picker.searchLabel = "Cast timer style"
+    picker.searchText = "Watch segmented bar monochrome mono gray desaturated number cursor timer"
+    return picker, 88
+end
+
 function W.Button(label, onClick, tip, width)
     local f = CreateFrame("Frame", nil, nil)
     f:SetSize(COL_W, 28)
@@ -495,7 +618,7 @@ do
         "EnhanceFishingSounds", "BackgroundSounds", "TurnOnSound", "MaxSound", "EnhancePools",
         "TownsfolkTracker",
         "EasyCast", "MountedCast", "AutoLoot", "AutoOpen", "UseAction", "PartialGear", "WithoutGear",
-        "WatchBobber", "WatchCastTimer", "CastTimerGauge", "CastTimerNumber", "CastTimerRadial", "CastTimerTransparency", "CastTimerPosition",
+        "WatchBobber", "WatchCastTimer", "CastTimerStyle", "CastTimerTransparency", "CastTimerPosition",
         "MouseEvent", "EasyCastKeys", "EasyLures", "AlwaysHat",
         "AlwaysLure", "LastResort",
         "WatchFishies", "WatchCurrentSkill", "WatchOnlyWhenFishing", "WatchCurrentZone",
@@ -754,16 +877,73 @@ local PAGES = {
     { section = "settings", key = "general", label = "General", order = 1,
       build = OptionPage({ name = GENERAL }, "General") },
     { section = "settings", key = "casting", label = "Casting", order = 2,
-      build = OptionPage({ option = "EasyCast", include = function(name) return not IsFun(name) end },
-          "Casting", "How Catchy casts, loots and applies lures for you.") },
+      build = function(p)
+          p:Section("Casting", "How Catchy casts, loots and applies lures for you.")
+          p:Section("Cursor timer", "Choose one timer style. The preview cards show how each looks beside your pointer.")
+          local picker, height = W.TimerStylePicker()
+          p:Add(picker, height, true)
+          p:Options({ option = "EasyCast", include = function(name)
+              return name ~= "CastTimerStyle" and not IsFun(name)
+          end })
+      end },
     { section = "settings", key = "watcher", label = "Fish Watcher", order = 3,
       build = OptionPage({ option = "WatchFishies" }, "Fish Watcher", "The overlay that lists the fish you catch.") },
     { section = "settings", key = "fun", label = "Fishing Fun", order = 4,
       build = OptionPage({ option = "FishingFluff", include = IsFun }, "Fishing Fun") },
     { section = "about", key = "about", label = "About", order = 1, build = function(p)
-        p:Section("Catchy", tostring(FBConstants.DESCRIPTION1 or "") .. " " .. tostring(FBConstants.DESCRIPTION2 or ""))
-        p:Paragraph("Catchy is a fork of Fishing Buddy by Sutorix, the original author. Fishing Buddy is the work of Sutorix and the many people who helped build it over the years.", 0, C.text, 12, 12)
-        p:Paragraph(tostring(FBConstants.COPYRIGHT or ""), 0, C.muted, 11, 8)
+        local width = COL_W * 2 + COL_GAP
+        local hero = CreateFrame("Frame", nil, nil)
+        hero:SetSize(width, 430)
+        local glow = Tex(hero, "BACKGROUND", { 1, 1, 1, 1 })
+        glow:SetPoint("TOPLEFT", 0, 0)
+        glow:SetPoint("TOPRIGHT", 0, 0)
+        glow:SetHeight(190)
+        local logo = hero:CreateTexture(nil, "ARTWORK")
+        logo:SetSize(112, 112)
+        logo:SetPoint("TOP", 0, -26)
+        logo:SetTexture(MEDIA .. "media\\Catchy-Logo")
+        local name = Text(hero, 26, AC, "OUTLINE")
+        name:SetPoint("TOP", logo, "BOTTOM", 0, -14)
+        name:SetJustifyH("CENTER")
+        name:SetText("Reel Catchy")
+        local blurb = Text(hero, 12, C.text)
+        blurb:SetPoint("TOP", name, "BOTTOM", 0, -14)
+        blurb:SetWidth(width - 80)
+        blurb:SetJustifyH("CENTER")
+        blurb:SetText(tostring(FBConstants.DESCRIPTION1 or "") .. " " .. tostring(FBConstants.DESCRIPTION2 or ""))
+        local get = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
+        local version = Text(hero, 11, C.muted)
+        version:SetPoint("TOP", 0, -272)
+        version:SetJustifyH("CENTER")
+        version:SetWidth(width)
+        version:SetText("Version " .. tostring(get and get(addonName, "Version") or "?"))
+        local copyright = Text(hero, 11, C.muted)
+        copyright:SetPoint("TOP", 0, -298)
+        copyright:SetJustifyH("CENTER")
+        copyright:SetWidth(width)
+        copyright:SetText(tostring(FBConstants.COPYRIGHT or ""))
+        local made = Text(hero, 12, C.text)
+        made:SetPoint("BOTTOM", -8, 62)
+        made:SetJustifyH("CENTER")
+        made:SetText("made by -allie")
+        -- Inter has no heart glyph guarantee, so the heart uses a Blizzard font that does.
+        local heart = hero:CreateFontString(nil, "OVERLAY")
+        if heart:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE") == false then SetFont(heart, 15, "OUTLINE") end
+        heart:SetPoint("LEFT", made, "RIGHT", 4, -1)
+        heart:SetTextColor(1, 0.16, 0.22)
+        heart:SetText("\226\153\165")
+        local credit = Text(hero, 10, C.muted)
+        credit:SetPoint("BOTTOM", 0, 14)
+        credit:SetWidth(width - 120)
+        credit:SetJustifyH("CENTER")
+        credit:SetSpacing(2)
+        credit:SetText("Reel Catchy is a fork of Fishing Buddy by Sutorix, the original author. Fishing Buddy is the work of Sutorix and the many people who helped build it over the years.")
+        function hero:Refresh()
+            SetGradient(glow, "VERTICAL", AC[1], AC[2], AC[3], 0, AC[1], AC[2], AC[3], 0.12)
+            Accent(name)
+        end
+        hero.searchLabel = "About Reel Catchy Catchy version copyright made by allie"
+        p:Add(hero, 430, true)
     end },
 }
 
@@ -1018,7 +1198,7 @@ local function CreateWindow()
     logo:SetTexture(LOGO)
     local title = Text(header, 20, AC)
     title:SetPoint("TOPLEFT", logo, "TOPRIGHT", 12, 0)
-    title:SetText("Catchy")
+    title:SetText("Reel Catchy")
     local sub = Text(header, 10, C.muted)
     sub:SetPoint("BOTTOMLEFT", logo, "BOTTOMRIGHT", 12, 1)
     sub:SetText("FISHING ASSISTANT  ·  v" .. Version())
@@ -1089,11 +1269,11 @@ function Settings:Open(key)
     key = FindPage(key or Settings.current or "general") and (key or Settings.current or "general") or "general"
     local T = _G.Tempus
     if Settings.hosted and T and T.Options and T.Options.Open and not Settings.standalone then
-        -- Use Tempus's normal open path. Passing a page key deliberately expands
-        -- that page's section; opening without one gives Catchy the same collapsed
-        -- sidebar behaviour as every other Tempus section.
-        if pcall(T.Options.Open, T.Options) then
+        -- Open the requested Catchy page and expand its section in Tempus's sidebar.
+        local hostedKey = "catchy_" .. key
+        if pcall(T.Options.Open, T.Options, hostedKey) then
             Settings.current = key
+            if Settings.ScrollHostedPageIntoView then Settings:ScrollHostedPageIntoView(hostedKey) end
             return
         end
     end

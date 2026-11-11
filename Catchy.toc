@@ -1,6 +1,6 @@
 ## Interface: 16001
-## Title: Catchy
-## Version: 1.29.0
+## Title: Reel Catchy
+## Version: 1.30.0
 ## IconTexture: Interface\AddOns\Catchy\media\Catchy-Minimap
 ## X-Curse-Project-ID: 15093
 ## X-WoWI-ID: 4239

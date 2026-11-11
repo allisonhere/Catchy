@@ -101,16 +101,8 @@ end
 local uselocale = FBI.DebugLocale;
 
 CATCHY_LOAD_STAGE = "core version detection"
-local major,_,_ = FL:WOWVersion();
-local printfunc;
-if ( FL:IsClassic() or major > 1 ) then
-    function FBI:Print(...)
-        FBI:Message(string.format(...));
-    end
-else
-    function FBI:Print(...)
-        FBI:Message(string.format(unpack(arg)));
-    end
+function FBI:Print(...)
+    FBI:Message(string.format(...));
 end
 
 CATCHY_LOAD_STAGE = "core translations"
@@ -693,6 +685,7 @@ local CastingOptions = {
         ["v"] = 1,
         ["default"] = true,
         ["parents"] = { ["WatchCastTimer"] = "d" },
+        ["visible"] = function() return false end,
     },
     ["CastTimerNumber"] = {
         ["text"] = FBConstants.CONFIG_CASTTIMERNUMBER_ONOFF,
@@ -700,13 +693,36 @@ local CastingOptions = {
         ["v"] = 1,
         ["default"] = true,
         ["parents"] = { ["WatchCastTimer"] = "d" },
+        ["visible"] = function() return false end,
     },
     ["CastTimerRadial"] = {
         ["text"] = FBConstants.CONFIG_CASTTIMERRADIAL_ONOFF or "Radial cast timer",
-        ["tooltip"] = FBConstants.CONFIG_CASTTIMERRADIAL_INFO or "Show a circular countdown around a fishing icon beside the pointer.",
+        ["tooltip"] = FBConstants.CONFIG_CASTTIMERRADIAL_INFO or "Show a watch-style countdown beside the pointer.",
         ["v"] = 1,
         ["default"] = false,
         ["parents"] = { ["WatchCastTimer"] = "d" },
+        ["visible"] = function() return false end,
+    },
+    ["CastTimerStyle"] = {
+        ["text"] = "Timer style",
+        ["tooltip"] = "Choose one cursor timer: watch, segmented bar, monochrome bar, or number.",
+        ["values"] = { ["radial"] = "Watch", ["bar"] = "Segmented bar", ["solid"] = "Mono bar", ["number"] = "Number" },
+        ["default"] = "bar",
+        ["parents"] = { ["WatchCastTimer"] = "d" },
+        ["getter"] = function(setting)
+            local stored = Catchy_Player and Catchy_Player.Settings and Catchy_Player.Settings[setting];
+            if stored == "radial" or stored == "bar" or stored == "solid" or stored == "number" then return stored end
+            if FBI:GetSettingBool("CastTimerRadial") then return "radial" end
+            if FBI:GetSettingBool("CastTimerGauge") then return "bar" end
+            return "number"
+        end,
+        ["setter"] = function(setting, value)
+            local style = value or "bar";
+            FBI:BaseSetSetting(setting, style);
+            FBI:SetSetting("CastTimerRadial", style == "radial");
+            FBI:SetSetting("CastTimerGauge", style == "bar" or style == "solid");
+            FBI:SetSetting("CastTimerNumber", style == "number");
+        end,
     },
     ["CastTimerTransparency"] = {
         ["text"] = FBConstants.CONFIG_CASTTIMERTRANSPARENCY_LABEL or "Timer opacity",
@@ -1978,6 +1994,13 @@ local FIRST_FISHING_LOOT_TIMEOUT = 45.0
 -- stay active for a minute between casts -- plenty of time to kill and loot a mob --
 -- so neither the mode nor an equipped pole may qualify loot on their own.
 local function IsFishingLoot()
+    -- LOOT_READY can fire before CHANNEL_STOP, while GetLastCastTime still
+    -- refers to the previous cast. The active fishing channel is authoritative.
+    if IsFishingCast(current_spell_id) then
+        lastFishingTime = GetTime();
+        return true;
+    end
+
     -- The fishing channel ran moments ago (looting the bobber always ends the channel)
     local lastcast = GetLastCastTime() or FL.lastCastTime;
     if lastcast and (GetTime() - lastcast) < FISHING_LOOT_TIMEOUT then
@@ -2052,35 +2075,22 @@ function FBI:OnEvent(event, ...)
                 -- Modern WoW API: GetLootInfo() was removed, use GetLootSlotInfo instead
                 local numLootItems = GetNumLootItems()
                 for index = 1, numLootItems do
-                    local lootType = GetLootSlotType(index);
-                    
-                    -- Only process actual items, not currency
-                    if lootType == Enum.LootSlotType.Item then
-                        local link = GetLootSlotLink(index);
-                        local texture, name, quantity, currencyID, quality = GetLootSlotInfo(index);
-                        
-                        -- Always use link if available, it's more reliable
-                        if link then
-                            -- Extract item ID from link if name isn't available
-                            if not name then
-                                local itemID = tonumber(string.match(link, "item:(%d+)"))
-                                if itemID then
-                                    name = C_Item.GetItemNameByID(itemID)
-                                end
-                            end
-                            
-                            -- Add to cache if we have name and link
-                            if name and link then
-                                FBI:AddLootCache(
-                                    texture,
-                                    name,
-                                    quantity or 1,
-                                    quality or 0,
-                                    link,
-                                    poolhint
-                                )
-                            end
+                    local link = GetLootSlotLink(index);
+                    -- A valid item link identifies the loot even when item
+                    -- details have not reached the local cache yet.
+                    local itemID = link and tonumber(string.match(link, "item:(%d+)"));
+                    if itemID then
+                        local texture, name, quantity, _, quality = GetLootSlotInfo(index);
+                        if type(texture) == "table" then
+                            local info = texture;
+                            texture = info.icon or info.texture;
+                            name = info.item or info.name;
+                            quantity = info.quantity;
+                            quality = info.quality;
                         end
+                        name = name or (C_Item and C_Item.GetItemNameByID and C_Item.GetItemNameByID(itemID))
+                            or string.match(link, "|h%[([^%]]+)%]") or ("Item " .. itemID);
+                        FBI:AddLootCache(texture, name, quantity or 1, quality or 0, link, poolhint);
                     end
                     
                     if (doautoloot) then

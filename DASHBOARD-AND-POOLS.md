@@ -76,7 +76,7 @@ School records now store `firstSeen` / `lastSeen` / `lastFish`. Existing data is
 | `FishingSchools.lua` | Adds `firstSeen` / `lastSeen` / `lastFish` to school records |
 | `FishingWatcher.lua` | New Watcher-tab options |
 | `locale/localization.enUS.lua` | New option strings (other locales fall back to English) |
-| `changes.txt`, `README.md` | Changelog + feature list |
+| `CHANGELOG.md`, `README.md` | Changelog + feature list |
 
 ## Validation performed
 
