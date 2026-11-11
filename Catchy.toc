@@ -47,6 +47,8 @@ CatchyAPI.lua
 CatchySettings.lua
 CatchyDashboard.lua
 CatchyJournal.lua
+CatchyCatchMap.lua
+CatchyCatchMapView.lua
 FishingPoolsMap.lua
 CatchyLocations.lua
 CatchyGear.lua

@@ -17,7 +17,7 @@ local WHITE = "Interface\\Buttons\\WHITE8X8"
 local MEDIA = "Interface\\AddOns\\" .. tostring(addonName) .. "\\"
 local FONT = MEDIA .. "media\\fonts\\Inter-SemiBold.ttf"
 local FALLBACK_FONT = "Fonts\\FRIZQT__.TTF"
-local LOGO = MEDIA .. "Icons\\Fishing-Icon"
+local LOGO = MEDIA .. "media\\Catchy-Logo"
 local tempus = _G.Tempus
 -- Hold Tempus's accent table itself (not a copy), so every Catchy module that
 -- keeps K.AC sees profile and combat-accent changes immediately.

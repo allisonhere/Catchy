@@ -470,6 +470,10 @@ function FBI:AddFishie(color, id, name, mapId, subzone, texture, quantity, quali
 			self.Stats:ObserveCatch("slot", id, quantity);
 		end
 	end
+	-- Remember where this was caught. A failure here must never block the catch itself.
+	if ( self.CatchMap and not FL:IsMissedFish(id) ) then
+		pcall(self.CatchMap.Record, self.CatchMap, id, quantity, mapId);
+	end
 	FBI:RunHandlers(FBConstants.ADD_FISHIE_EVT, id, name, mapId, subzone, texture, quantity, quality, level, idx, poolhint);
 end
 

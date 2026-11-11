@@ -289,6 +289,88 @@ local function BuildJournalOverview(page)
     form.searchLabel = "Recent form outcomes"
     page:Add(form, 36, true)
 
+    page:Section("Catch map", "Every catch is remembered by place. Pick a fish, step through your zones, and see where the fish were caught.")
+    local MapView = FBI.CatchMapView
+    local ZONE_ROWS = 8
+    local zoneFish = 0 -- 0 = all fish
+    page:Add(K.W.Dropdown("Show fish", function()
+        local items = { { value = 0, label = "All fish" } }
+        if MapView then
+            for _, fish in ipairs(MapView:FishChoices()) do
+                items[#items + 1] = { value = fish.id, label = string.format("%s  (%d)", fish.name, fish.count) }
+            end
+        end
+        return items
+    end, function() return zoneFish end, function(value)
+        zoneFish = value
+        if MapView then MapView.filter.fish = value ~= 0 and value or nil end
+    end, "Which fish the map shows."), 48)
+    if MapView then
+        page:Add(MapView:BuildShowcase(K, K.COL_W * 2 + K.COL_GAP, 400), 400, true)
+    end
+
+    local zones = CreateFrame("Frame", nil, nil)
+    local zonesHeight = 38 + ZONE_ROWS * 30
+    zones:SetSize(K.COL_W * 2 + K.COL_GAP, zonesHeight)
+    K.Tex(zones, "BACKGROUND", K.C.card):SetAllPoints()
+    K.Border(zones, { 1, 1, 1, 0.10 })
+    local zoneHeading = K.Text(zones, 10, K.C.muted)
+    zoneHeading:SetPoint("TOPLEFT", 14, -12)
+    zoneHeading:SetText("ZONES WITH RECORDED CATCHES")
+    local zoneEmpty = K.Text(zones, 12, K.C.muted)
+    zoneEmpty:SetPoint("TOPLEFT", 14, -42)
+    zoneEmpty:SetText("No catch locations yet. Go fishing and your spots will appear here.")
+    local ZONE_W = K.COL_W * 2 + K.COL_GAP - 28
+    local zoneRows = {}
+    for i = 1, ZONE_ROWS do
+        local row = {}
+        local y = -32 - (i - 1) * 30
+        row.track = K.Tex(zones, "ARTWORK", { 1, 1, 1, 0.045 }, 1)
+        row.track:SetSize(ZONE_W, 24)
+        row.track:SetPoint("TOPLEFT", 14, y)
+        row.fill = K.Tex(zones, "ARTWORK", { 1, 1, 1, 1 }, 2)
+        row.fill:SetHeight(24)
+        row.fill:SetPoint("TOPLEFT", 14, y)
+        row.name = K.Text(zones, 12, K.C.text, "OUTLINE")
+        row.name:SetPoint("TOPLEFT", 24, y - 5)
+        row.name:SetWidth(260)
+        row.name:SetJustifyH("LEFT")
+        row.stats = K.Text(zones, 11, K.C.muted)
+        row.stats:SetPoint("TOPRIGHT", zones, "TOPLEFT", 14 + ZONE_W - 86, y - 6)
+        row.stats:SetJustifyH("RIGHT")
+        row.view = K.FlatButton(zones, "SHOW", 72, 20, function()
+            if row.mapId and MapView then
+                MapView.selected = row.mapId
+                page:Refresh()
+            end
+        end)
+        row.view:SetPoint("TOPRIGHT", zones, "TOPLEFT", 14 + ZONE_W - 4, y - 2)
+        zoneRows[i] = row
+    end
+    function zones:Refresh()
+        local list = MapView and MapView:Zones() or {}
+        zoneEmpty:SetShown(#list == 0)
+        local peak = list[1] and list[1].total or 1
+        local r, g, b = K.AC[1], K.AC[2], K.AC[3]
+        for i, row in ipairs(zoneRows) do
+            local zone = list[i]
+            row.mapId = zone and zone.mapId
+            row.track:SetShown(zone ~= nil)
+            row.fill:SetShown(zone ~= nil)
+            row.name:SetShown(zone ~= nil)
+            row.stats:SetShown(zone ~= nil)
+            row.view:SetShown(zone ~= nil)
+            if zone then
+                row.fill:SetWidth(math.max(3, ZONE_W * zone.total / peak))
+                K.SetGradient(row.fill, "HORIZONTAL", r * 0.3, g * 0.3, b * 0.3, 0.9, r * 0.85, g * 0.85, b * 0.85, 0.7)
+                row.name:SetText(zone.name)
+                row.stats:SetText(string.format("|cffffc738%d|r catches  •  %d spots", zone.total, zone.spots))
+            end
+        end
+    end
+    zones.searchLabel = "Catch map zones where fish were caught"
+    page:Add(zones, zonesHeight, true)
+
     page:Section("Rankings", "Top catches and favorite waters from your recorded history.")
     local ROWS, BAR_W = 6, K.COL_W - 28
     local function RankingPanel(title, build)
