@@ -187,6 +187,10 @@ end
 
 function FishLib:GetFishingProfession()
     local fishing;
+    if GetProfessions then
+        _, _, _, fishing = GetProfessions();
+        if fishing then return fishing end
+    end
     if self:IsClassic() then
         fishing, _ = self:GetFishingSpellInfo();
     else
@@ -403,13 +407,35 @@ end
 
 -- get the fishing skill for the specified continent
 function FishLib:GetContinentSkill(continent)
+    -- Forever uses Retail UI behavior but exposes an unsplit profession rank.
+    if (WOW.interface == 16001 or self:IsClassic()) and GetProfessions and GetProfessionInfo then
+        local _, _, _, fishing = GetProfessions()
+        if fishing then
+            local _, _, rank, maximum, _, _, _, modifier = GetProfessionInfo(fishing)
+            if rank then
+                local _, lure = self:GetPoleBonus()
+                return rank, modifier or 0, maximum or 0, lure or 0
+            end
+        end
+    end
+    if self:IsClassic() and GetNumSkillLines and GetSkillLineInfo then
+        local _, fishingName = self:GetFishingSpellInfo()
+        for index = 1, GetNumSkillLines() do
+            local name, header, _, rank, _, modifier, maximum = GetSkillLineInfo(index)
+            if not header and (name == fishingName or name == PROFESSIONS_FISHING) then
+                local _, lure = self:GetPoleBonus()
+                return rank or 0, modifier or 0, maximum or 0, lure or 0
+            end
+        end
+    end
     local fishing = self:GetFishingProfession();
     if (fishing) then
         local info = FishLib.continent_fishing[continent];
         if (info) then
-            local name, _, _, skillmax, _, _, _, mods = GetProfessionInfo(fishing);
+            local name, _, rank, skillmax, _, _, _, mods = GetProfessionInfo(fishing);
             local _, lure = self:GetPoleBonus();
-            return info.rank or 0, mods or 0, info.max or 0, lure or 0;
+            return (info.rank and info.rank > 0 and info.rank) or rank or 0,
+                mods or 0, info.max or skillmax or 0, lure or 0;
         end
     end
     return 0, 0, 0, 0;
@@ -2411,7 +2437,7 @@ function FishLib:InvokeLuring(id, itemtype)
         else
             if not itemtype then
                 itemtype = "item";
-                targetslot = INVSLOT_FISHING_TOOL;
+                targetslot = self:GetFishingToolItem() and INVSLOT_FISHING_TOOL or INVSLOT_MAINHAND;
             end
             btn:SetAttribute("type", itemtype);
             btn:SetAttribute("item", id);
@@ -2519,13 +2545,13 @@ end
 -- and the bonus from a lure, if any, separately
 function FishLib:GetPoleBonus()
     if (self:IsFishingPole()) then
-        -- Modern WoW (10.0.2+): the pole equips into the fishing tool slot, not the
-        -- main hand, so read the pole's bonus from the correct slot on retail.
-        local poleslot = IsRetail() and INVSLOT_FISHING_TOOL or INVSLOT_MAINHAND;
+        -- Follow the equipped pole: Forever can use a main-hand pole even
+        -- while exposing the Retail UI APIs.
+        local poleslot = self:GetFishingToolItem() and INVSLOT_FISHING_TOOL or INVSLOT_MAINHAND;
         -- get the total bonus for the pole
         local total = self:FishingBonusPoints(poleslot, true);
         local hmhe = false;
-        if ( IsRetail() and C_PaperDollInfo and C_PaperDollInfo.GetTemporaryEnchantmentInfo ) then
+        if ( poleslot == INVSLOT_FISHING_TOOL and C_PaperDollInfo and C_PaperDollInfo.GetTemporaryEnchantmentInfo ) then
             local ok, info = pcall(C_PaperDollInfo.GetTemporaryEnchantmentInfo, poleslot);
             if ( ok and info ) then
                 if ( type(info) == "table" ) then

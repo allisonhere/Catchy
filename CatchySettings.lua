@@ -879,16 +879,22 @@ local PAGES = {
     { section = "settings", key = "casting", label = "Casting", order = 2,
       build = function(p)
           p:Section("Casting", "How Catchy casts, loots and applies lures for you.")
-          p:Section("Cursor timer", "Choose one timer style. The preview cards show how each looks beside your pointer.")
-          local picker, height = W.TimerStylePicker()
-          p:Add(picker, height, true)
           p:Options({ option = "EasyCast", include = function(name)
-              return name ~= "CastTimerStyle" and not IsFun(name)
+              return name ~= "WatchCastTimer" and not name:match("^CastTimer") and not IsFun(name)
           end })
       end },
-    { section = "settings", key = "watcher", label = "Fish Watcher", order = 3,
+    { section = "settings", key = "cast_timers", label = "Cast Timers", order = 3,
+      build = function(p)
+          p:Section("Cast Timers", "Choose how the cast timer looks beside your pointer.")
+          p:Options({ option = "EasyCast", include = function(name)
+              return name == "WatchCastTimer" or name == "CastTimerTransparency" or name == "CastTimerPosition"
+          end })
+          local picker, height = W.TimerStylePicker()
+          p:Add(picker, height, true)
+      end },
+    { section = "settings", key = "watcher", label = "Fish Watcher", order = 4,
       build = OptionPage({ option = "WatchFishies" }, "Fish Watcher", "The overlay that lists the fish you catch.") },
-    { section = "settings", key = "fun", label = "Fishing Fun", order = 4,
+    { section = "settings", key = "fun", label = "Fishing Fun", order = 5,
       build = OptionPage({ option = "FishingFluff", include = IsFun }, "Fishing Fun") },
     { section = "about", key = "about", label = "About", order = 1, build = function(p)
         local width = COL_W * 2 + COL_GAP

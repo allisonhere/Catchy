@@ -28,11 +28,8 @@ local LureStateManager = {
 function LureStateManager:LuringComplete()
     if self.AddingLure then
         if not UnitChannelInfo("player") then
-            local _, lure = FL:GetPoleBonus();
-            if not self.LastLure or (lure and lure == self.LastLure.b) then
-                self.AddingLure = false;
-                FL:UpdateLureInventory();
-            end
+            self.AddingLure = false;
+            FL:UpdateLureInventory();
         else
             return false;
         end
@@ -132,7 +129,7 @@ local function PickLure()
                     LSM:SetLastLure(NextLure)
                     return true, NextLure.id, NextLure.n;
                 else
-                    LSM:ClearAddingLure(true)
+                    LSM:ClearLastLure(true)
                 end
             end
         end
@@ -159,6 +156,12 @@ LuringEvents["VARIABLES_LOADED"] = function(started)
 end
 
 LuringEvents["UNIT_SPELLCAST_CHANNEL_START"] = function(unit, lineid, spellid)
+    if unit ~= "player" then return end
+    local fishingID = FL:GetFishingSpellInfo()
+    if spellid == fishingID or spellid == 131474 or spellid == 131490 then
+        LSM:ClearLastLure()
+        return
+    end
     if LureStateManager.LastLure then
         LureStateManager.AddingLure = true;
     end

@@ -270,7 +270,7 @@ function View:Refresh()
         pin:SetPoint("CENTER", parent, "TOPLEFT", cell.x * width, -cell.y * height)
         local r, g, b = HeatColor(t)
         pin.glow:SetVertexColor(r, g, b, 0.95)
-        pin.core:SetSize(4, 4)
+        pin.core:SetSize(3, 3)
         pin.core:SetVertexColor(1, 1, 1, 0.95)
         pin.cell = cell
         pin:Show()
@@ -428,8 +428,8 @@ function View:BuildShowcase(K, width, height)
         if pin.CreateAnimationGroup then
             pin.pulse = pin.halo:CreateAnimationGroup()
             local a = pin.pulse:CreateAnimation("Alpha")
-            a:SetFromAlpha(0.45); a:SetToAlpha(1)
-            a:SetDuration(1.2 + (index % 7) * 0.17)
+            a:SetFromAlpha(0.45); a:SetToAlpha(0.75)
+            a:SetDuration(2 + (index % 7) * 0.17)
             if a.SetSmoothing then a:SetSmoothing("IN_OUT") end
             pin.pulse:SetLooping("BOUNCE")
         end
@@ -556,16 +556,16 @@ function View:BuildShowcase(K, width, height)
             total = total + cell.n
             local pin = Spot(index)
             local t = math.sqrt(cell.n / peak)
-            local size = 16 + 30 * t
+            local size = 12 + 16 * t
             pin:SetSize(size, size)
             pin:ClearAllPoints()
             pin:SetPoint("CENTER", box, "TOPLEFT", offsetX + cell.x * mapW, -(offsetY + cell.y * mapH))
             pin:SetFrameLevel(box:GetFrameLevel() + 4 + math.floor(t * 4))
             local hr, hg, hb = HeatColor(t)
-            pin.halo:SetSize(size * 2.6, size * 2.6)
-            pin.halo:SetVertexColor(hr, hg, hb, 0.85)
-            pin.star:SetVertexColor(hr, hg, hb, 1)
-            pin.core:SetVertexColor(1, 1, 1, 1)
+            pin.halo:SetSize(size * 1.8, size * 1.8)
+            pin.halo:SetVertexColor(hr, hg, hb, 0.25)
+            pin.star:SetVertexColor(hr, hg, hb, 0.65)
+            pin.core:SetVertexColor(1, 1, 1, 0.7)
             pin.cell = cell
             pin:Show()
             if pin.pulse then pin.pulse:Play() end

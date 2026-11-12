@@ -1359,6 +1359,12 @@ function FBI:GetUpdateLure()
     local LSM = FBI.LureStateManager;
     local lureinventory, _ = FL:GetLureInventory();
 
+    -- Execute a selected plan before checking its retry delay. Selecting a
+    -- lure starts that delay, so checking it first suppresses the lure itself.
+    if PLANS:HavePlans() then
+        return PLANS:GetPlan()
+    end
+
     -- Let's wait a bit so that the enchant can show up before we lure again
     if LSM:LuringCheck() then
         return false, 0, nil
@@ -1433,14 +1439,15 @@ local function ClearLastLure()
     LSM:ClearLastLure()
 end
 
--- we don't want to interrupt ourselves if we're casting.
+-- Track the current cast so Easy Cast can allow fishing recasts safely.
 local fishing_buff = 131474;
 local fishing_spellid = 131490;
 local current_spell_id = nil
 
--- The channel events report the castable Fishing spell (131474, fishing_buff),
--- not the profession spell id kept in fishing_spellid
+-- Accept the client's Fishing spell as well as the modern channel IDs.
 local function IsFishingCast(spellid)
+    local knownFishingID = FL:GetFishingSpellInfo()
+    if spellid and spellid == knownFishingID then return true end
     if ( spellid and (spellid == fishing_buff or spellid == fishing_spellid) ) then
         return true;
     end
@@ -1534,6 +1541,8 @@ CaptureEvents["UNIT_SPELLCAST_CHANNEL_START"] = function(unit, lineid, spellid)
     end
     current_spell_id = spellid
     if IsFishingCast(spellid) then
+        -- A fishing channel means lure application has finished.
+        ClearLastLure()
         SetLastCastTime();
         -- any fishing cast counts as fishing, no matter how it was cast
         FishingModeFrame:EmitStartFishing();
@@ -1598,10 +1607,11 @@ local function NormalHijackCheck()
     local GSB = function(...) return FBI:GetSettingBool(...); end;
     local GSA = function(...) return FBI:ActiveSetting(...); end;
     local LSM = FBI.LureStateManager;
-    if ( not LSM:GetLastLure() and
+    local fishing = IsFishingCast(current_spell_id)
+    if ( (not LSM:GetLastLure() or fishing) and
          not FL:InCombat() and GSA("FlyingCast") and GSA("MountedCast") and
          not IsFishingAceEnabled() and
-         GSB("EasyCast") and CheckCastingKeys() and not current_spell_id) then
+         GSB("EasyCast") and CheckCastingKeys() and (not current_spell_id or fishing)) then
         return true;
     end
 end

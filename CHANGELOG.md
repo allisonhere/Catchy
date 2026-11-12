@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Restore double-click recasting while the bobber is out and clear stale lure-application state.
+- Fix automatic lure selection, read Forever's fishing skill directly, and apply lures to the equipped pole's slot.
+- Move timer controls and style previews into a dedicated Cast Timers settings page.
+- Reduce the size, brightness and pulse of catch highlights on the internal map.
+
 ## 1.30.0
 
 - Rename the addon's display name to Reel Catchy. The folder, saved variables and `/ca` commands are unchanged, so existing settings and history carry over.
