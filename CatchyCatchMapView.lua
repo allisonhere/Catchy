@@ -134,6 +134,48 @@ function View.ArtInfo(mapId)
     }
 end
 
+-- Discovered terrain uses separate textures with power-of-two padded edge tiles.
+function View.ExploredTiles(mapId, art, scale)
+    local result = {}
+    if not (C_MapExplorationInfo and C_MapExplorationInfo.GetExploredMapTextures) then return result end
+    local ok, regions = pcall(C_MapExplorationInfo.GetExploredMapTextures, mapId)
+    if not ok or type(regions) ~= "table" then return result end
+    local function FileSize(pixels)
+        local size = 16
+        while size < pixels do size = size * 2 end
+        return size
+    end
+    for _, region in ipairs(regions) do
+        if not region.isShownByMouseOver and region.textureWidth and region.textureHeight and region.fileDataIDs then
+            local cols = math.ceil(region.textureWidth / art.tileW)
+            local rows = math.ceil(region.textureHeight / art.tileH)
+            for row = 0, rows - 1 do
+                for col = 0, cols - 1 do
+                    local w = math.min(art.tileW, region.textureWidth - col * art.tileW)
+                    local h = math.min(art.tileH, region.textureHeight - row * art.tileH)
+                    local fw = col == cols - 1 and FileSize(w) or art.tileW
+                    local fh = row == rows - 1 and FileSize(h) or art.tileH
+                    local x = (region.offsetX or 0) + col * art.tileW
+                    local y = (region.offsetY or 0) + row * art.tileH
+                    local left, top = math.max(0, x), math.max(0, y)
+                    local right, bottom = math.min(art.layerW, x + w), math.min(art.layerH, y + h)
+                    local id = region.fileDataIDs[row * cols + col + 1]
+                    if id and right > left and bottom > top then
+                        result[#result + 1] = {
+                            id = id, x = left * scale, y = top * scale,
+                            w = (right - left) * scale, h = (bottom - top) * scale,
+                            left = (left - x) / fw, right = (right - x) / fw,
+                            top = (top - y) / fh, bottom = (bottom - y) / fh,
+                            onTop = region.isDrawOnTopLayer,
+                        }
+                    end
+                end
+            end
+        end
+    end
+    return result
+end
+
 -- Size of the map as drawn inside a w by h box: as large as fits, centred.
 function View.FitMap(layerW, layerH, w, h)
     local scale = math.min(w / layerW, h / layerH)
@@ -343,9 +385,15 @@ local function FishIcon(id)
     return icon or (GetItemIcon and GetItemIcon(id)) or ICON_FALLBACK
 end
 
--- Which zone the showcase shows: the chosen one, else the zone with the most catches.
+-- Follow zone changes while preserving manual browsing within the same zone.
 function View:Selected()
     local zones = View:Zones()
+    local playerMap = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
+    if playerMap and playerMap ~= View.playerMap then
+        View.playerMap = playerMap
+        View.selected = playerMap
+    end
+    if View.selected and View.selected == View.playerMap then return View.selected, zones end
     for _, zone in ipairs(zones) do
         if zone.mapId == View.selected then return zone.mapId, zones end
     end
@@ -368,7 +416,7 @@ function View:BuildShowcase(K, width, height)
     K.Tex(box, "BACKGROUND", { 0.02, 0.03, 0.05, 1 }):SetAllPoints()
 
     -- map art
-    local tiles = {}
+    local tiles, explored = {}, {}
     for i = 1, 32 do
         local t = box:CreateTexture(nil, "BACKGROUND", nil, 1)
         t:Hide()
@@ -498,6 +546,7 @@ function View:BuildShowcase(K, width, height)
         empty:SetShown(mapId == nil)
         timeBtn.text:SetText(WINDOWS[View.filter.window or 1].label)
         for _, t in ipairs(tiles) do t:Hide() end
+        for _, t in ipairs(explored) do t:Hide() end
         for _, line in ipairs(grid) do line:Hide() end
         noArt:Hide()
         for _, pin in ipairs(spots) do
@@ -530,6 +579,21 @@ function View:BuildShowcase(K, width, height)
                     tex:SetVertexColor(0.78, 0.86, 0.95, 1)
                     tex:Show()
                 end
+            end
+            for i, rect in ipairs(View.ExploredTiles(mapId, art, scale)) do
+                local tex = explored[i]
+                if not tex then
+                    tex = box:CreateTexture(nil, "BACKGROUND", nil, 2)
+                    explored[i] = tex
+                end
+                tex:SetDrawLayer("BACKGROUND", rect.onTop and 3 or 2)
+                tex:ClearAllPoints()
+                tex:SetPoint("TOPLEFT", box, "TOPLEFT", offsetX + rect.x, -(offsetY + rect.y))
+                tex:SetSize(rect.w, rect.h)
+                tex:SetTexture(rect.id)
+                tex:SetTexCoord(rect.left, rect.right, rect.top, rect.bottom)
+                tex:SetVertexColor(0.78, 0.86, 0.95, 1)
+                tex:Show()
             end
         else
             mapW, mapH = width - 40, height - 40
@@ -591,5 +655,17 @@ function View:BuildShowcase(K, width, height)
     end
 
     box:SetScript("OnShow", function() box:Refresh() end)
+    box:RegisterEvent("MAP_EXPLORATION_UPDATED")
+    box:SetScript("OnEvent", function()
+        if box:IsShown() then box:Refresh() end
+    end)
+    local zoneElapsed = 0
+    box:SetScript("OnUpdate", function(_, delta)
+        zoneElapsed = zoneElapsed + delta
+        if zoneElapsed < 0.5 then return end
+        zoneElapsed = 0
+        local playerMap = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
+        if playerMap and playerMap ~= View.playerMap then box:Refresh() end
+    end)
     return box
 end

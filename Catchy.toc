@@ -45,6 +45,7 @@ FishingPlans\Plans.xml
 FishingFluff.lua
 CatchyAPI.lua
 CatchySettings.lua
+CatchyLureStatus.lua
 CatchyDashboard.lua
 CatchyJournal.lua
 CatchyCatchMap.lua

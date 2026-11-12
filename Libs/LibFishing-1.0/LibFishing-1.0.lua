@@ -805,6 +805,20 @@ function FishLib:HasLureBuff()
     -- return nil
 end
 
+-- Actual aura data only: queued buffs must not appear as active in the HUD.
+function FishLib:GetActiveLureInfo()
+    if not C_UnitAuras or not C_UnitAuras.GetAuraDataByIndex then return end
+    for index = 1, 40 do
+        local aura = C_UnitAuras.GetAuraDataByIndex("player", index)
+        if not aura then break end
+        for _, lure in ipairs(FISHINGLURES) do
+            if aura.spellId == lure.spell then
+                return aura.name or lure.n or lure.enUS, aura.expirationTime
+            end
+        end
+    end
+end
+
 function FishLib:HasHatBuff()
     for _,hat in ipairs(FISHINGHATS) do
         if self:HasBuff(hat.spell) then

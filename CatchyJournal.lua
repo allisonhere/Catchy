@@ -266,14 +266,17 @@ local function BuildJournalOverview(page)
 
     page:Section("Recent form", "Your last 20 casts this session, newest on the right.")
     local form = CreateFrame("Frame", nil, nil)
-    form:SetSize(K.COL_W * 2 + K.COL_GAP, 36)
+    local formWidth = K.COL_W * 2 + K.COL_GAP
+    local formPadding, formGap, formCount = 14, 5, 20
+    local dotWidth = (formWidth - formPadding * 2 - formGap * (formCount - 1)) / formCount
+    form:SetSize(formWidth, 36)
     K.Tex(form, "BACKGROUND", K.C.card):SetAllPoints()
     K.Border(form, { 1, 1, 1, 0.10 })
     local dots = {}
-    for i = 1, 20 do
+    for i = 1, formCount do
         local dot = K.Tex(form, "ARTWORK", { 0.13, 0.17, 0.22, 0.85 })
-        dot:SetSize(25, 12)
-        dot:SetPoint("LEFT", 14 + ((i - 1) * 30), 0)
+        dot:SetSize(dotWidth, 12)
+        dot:SetPoint("LEFT", form, "LEFT", formPadding + (i - 1) * (dotWidth + formGap), 0)
         dots[i] = dot
     end
     function form:Refresh()

@@ -571,7 +571,7 @@ local function FormatMoney(copper)
 end
 
 local frame = CreateFrame("Frame", "CatchyStatsFrame", UIParent, "BackdropTemplate");
-frame:SetSize(270, 284);
+frame:SetSize(270, 330);
 frame:SetFrameStrata("LOW");
 frame:SetClampedToScreen(true);
 frame:SetMovable(true);
@@ -623,6 +623,16 @@ for _, row in ipairs(ROWS) do
     y = y - 19;
 end
 
+local lureLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+lureLabel:SetPoint("TOPLEFT", 14, y - 6)
+lureLabel:SetWidth(242)
+lureLabel:SetJustifyH("LEFT")
+local lureDetail = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+lureDetail:SetPoint("TOPLEFT", 14, y - 24)
+lureDetail:SetWidth(242)
+lureDetail:SetJustifyH("LEFT")
+lureDetail:SetTextColor(0.64, 0.64, 0.64)
+
 local function UpdateValues()
     if ( not EnsureSession() ) then
         return;
@@ -643,6 +653,18 @@ local function UpdateValues()
     else
         rowWidgets.gold:SetText("");
     end
+    if FBI.LureStatus then
+        local label, detail, kind = FBI.LureStatus:Get()
+        lureLabel:SetText(label)
+        lureDetail:SetText(detail)
+        if kind == "active" then
+            lureLabel:SetTextColor(0.55, 0.82, 0.65)
+        elseif kind == "pending" then
+            lureLabel:SetTextColor(1, 0.82, 0.28)
+        else
+            lureLabel:SetTextColor(0.75, 0.75, 0.75)
+        end
+    end
 end
 
 function Stats:Refresh(force)
@@ -653,14 +675,22 @@ function Stats:Refresh(force)
 end
 
 local accumulator = 0;
-frame:SetScript("OnUpdate", function(self, elapsed)
+local lastDashboardEnabled
+eventFrame:SetScript("OnUpdate", function(_, elapsed)
+    local self = frame
     accumulator = accumulator + (elapsed or 0);
     if ( accumulator < 0.5 ) then
         return;
     end
     accumulator = 0;
 
-    local shouldShow = GSB("WatchDashboard") and
+    local enabled = GSB("WatchDashboard")
+    if enabled ~= lastDashboardEnabled then
+        self.dismissed = nil
+        if enabled then self.forceShowUntil = GetTime() + 30 end
+        lastDashboardEnabled = enabled
+    end
+    local shouldShow = enabled and not self.dismissed and FL:IsFishingPole() and
         ( GSB("WatchDashboardAlways") or FBI:AreWeFishing() or FBI.watcher_fishing_pending or
           ( self.forceShowUntil and GetTime() < self.forceShowUntil ) );
     if ( shouldShow ) then
@@ -683,6 +713,7 @@ end);
 frame:RegisterForDrag("LeftButton");
 frame:SetScript("OnMouseDown", function(self, button)
     if ( button == "RightButton" ) then
+        self.dismissed = true
         self:Hide();
     end
 end);
@@ -722,6 +753,7 @@ FBI:AddCommand("stats", function(what)
     FBI:SetSetting("WatchDashboard", enabled);
     FBI:Print("Session dashboard " .. (enabled and "enabled" or "disabled") .. ".");
     if ( enabled ) then
+        frame.dismissed = nil
         Stats:Refresh(true);
         frame.forceShowUntil = GetTime() + 30;
         frame:Show();

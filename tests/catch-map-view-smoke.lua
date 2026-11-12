@@ -73,6 +73,31 @@ C_Map.GetMapArtLayerTextures = function() return { 1, 2, 3 } end
 local art = V.ArtInfo(1438)
 assert(art and art.layerW == 1002 and #art.textures == 3)
 
+-- Exploration overlays use padded edge textures, unlike the base map tiles.
+assert(#V.ExploredTiles(1438, art, 0.5) == 0, "missing exploration API is safe")
+C_MapExplorationInfo = { GetExploredMapTextures = function(id)
+    assert(id == 1438)
+    return {
+        { textureWidth = 300, textureHeight = 270, offsetX = 100, offsetY = 50,
+          fileDataIDs = { 11, 12, 13, 14 } },
+        { textureWidth = 100, textureHeight = 100, offsetX = -20, offsetY = -10,
+          fileDataIDs = { 15 }, isDrawOnTopLayer = true },
+        { textureWidth = 100, textureHeight = 100, offsetX = 0, offsetY = 0,
+          fileDataIDs = { 99 }, isShownByMouseOver = true },
+    }
+end }
+local explored = V.ExploredTiles(1438, art, 0.5)
+assert(#explored == 5, "only discovered, non-hover overlays should render")
+assert(explored[1].id == 11 and explored[1].x == 50 and explored[1].y == 25)
+assert(explored[4].id == 14 and explored[4].w == 22 and explored[4].h == 7)
+assert(explored[4].right == 44 / 64 and explored[4].bottom == 14 / 16,
+    "padded exploration edge tiles must use their actual file dimensions")
+assert(explored[5].x == 0 and explored[5].y == 0 and explored[5].w == 40 and explored[5].h == 45)
+assert(explored[5].left == 20 / 128 and explored[5].top == 10 / 128 and explored[5].onTop,
+    "overlays extending outside the map must be cropped with matching texture coordinates")
+C_MapExplorationInfo.GetExploredMapTextures = function() return nil end
+assert(#V.ExploredTiles(1438, art, 0.5) == 0, "zone switches must not reuse old exploration")
+
 -- the showcase builds and refreshes with art, without art, and with no data
 local function Widget()
     return setmetatable({ shown = true }, { __index = function(self, key)
@@ -100,4 +125,18 @@ Catchy_Info.CatchSpots = {}
 V.selected = nil
 box:Refresh()
 assert(V.selected == nil)
+local playerMap = 1438
+C_Map.GetBestMapForUnit = function() return playerMap end
+box:Refresh()
+assert(V.selected == 1438, "current zone should display even without recorded catches")
+Catchy_Info.CatchSpots[1439] = { [1] = { x = 0.2, y = 0.2, n = 1, fish = {} } }
+V.selected = 1439
+box:Refresh()
+assert(V.selected == 1439, "manual browsing should persist while the player stays in a zone")
+playerMap = 77777
+box.OnUpdate(box, 0.5)
+assert(V.selected == 77777, "visible showcase should follow a player zone change")
+C_Map.GetBestMapForUnit = function() return nil end
+box:Refresh()
+assert(V.selected == 77777, "temporary missing map data should not change the map")
 print("catch map view smoke: ok")

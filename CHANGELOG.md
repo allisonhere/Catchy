@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Draw the player's explored-area overlays on the Journal map and refresh them when new terrain is discovered.
+- Follow player zone changes on the Journal's internal catch map while retaining manual browsing within a zone.
+- Hide the session dashboard when the fishing pole is unequipped, including with Always Show enabled.
+- Fix the session HUD failing to reappear after enabling it in settings.
+- Show active lure status and available remaining time in the session HUD, with auto-lure skip and waiting reasons.
 - Restore double-click recasting while the bobber is out and clear stale lure-application state.
 - Fix automatic lure selection, read Forever's fishing skill directly, and apply lures to the equipped pole's slot.
 - Move timer controls and style previews into a dedicated Cast Timers settings page.
